@@ -48,6 +48,14 @@ docker compose up -d --build
 - `5432`：PostgreSQL
 - `6379`：Redis
 
+### 常用访问入口
+
+部署完成后，可直接访问以下前端路径：
+
+- **管理员登录**：`/admin/login`
+- **商户注册**：`/merchant/register`
+- **商户登录**：`/merchant/login`
+
 ## 环境变量
 
 参考 `.env.example`。常用变量包括：
