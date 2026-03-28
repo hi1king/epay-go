@@ -1,0 +1,22 @@
+# config.example.yaml
+server:
+  port: 8080
+  mode: debug  # debug, release, test
+
+database:
+  host: localhost
+  port: 5432
+  user: epay
+  password: your_password_here
+  dbname: epay
+  sslmode: disable
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0
+
+jwt:
+  secret: your_jwt_secret_here_change_in_production
+  expire_hour: 168  # 7 days

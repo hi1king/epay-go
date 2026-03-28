@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(git add web/vite.config.ts)",
+      "Bash(git commit -m \"fix: add missing API proxy routes for plugins and refunds\n\n- Add /admin/plugins proxy for plugin configuration APIs\n- Add /admin/test-payment proxy for test payment API\n- Add /admin/refunds and /merchant/refunds proxy for refund APIs\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+# epay-go/.dockerignore
+.git
+.gitignore
+README.md
+docs
+web/node_modules
+web/dist
+*.log
+*.test
+.env.local
