@@ -1,4 +1,4 @@
-// internal/handler/admin/settlement.go
+// internal/api/admin/withdraw.go
 package admin
 
 import (
@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// ListSettlements 结算列表
-func ListSettlements(c *gin.Context) {
+// ListWithdraws 提现列表
+func ListWithdraws(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
 
@@ -27,26 +27,26 @@ func ListSettlements(c *gin.Context) {
 		status = &v8
 	}
 
-	settlementService := service.NewSettlementService()
-	settlements, total, err := settlementService.List(page, pageSize, merchantID, status)
+	withdrawService := service.NewWithdrawService()
+	withdraws, total, err := withdrawService.List(page, pageSize, merchantID, status)
 	if err != nil {
-		response.ServerError(c, "获取结算列表失败")
+		response.ServerError(c, "获取提现列表失败")
 		return
 	}
 
-	response.SuccessPage(c, settlements, total, page, pageSize)
+	response.SuccessPage(c, withdraws, total, page, pageSize)
 }
 
-// ApproveSettlement 审核通过
-func ApproveSettlement(c *gin.Context) {
+// ApproveWithdraw 审核通过
+func ApproveWithdraw(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		response.ParamError(c, "无效的结算ID")
+		response.ParamError(c, "无效的提现ID")
 		return
 	}
 
-	settlementService := service.NewSettlementService()
-	if err := settlementService.Approve(id); err != nil {
+	withdrawService := service.NewWithdrawService()
+	if err := withdrawService.Approve(id); err != nil {
 		response.ServerError(c, err.Error())
 		return
 	}
@@ -54,27 +54,27 @@ func ApproveSettlement(c *gin.Context) {
 	response.Success(c, nil)
 }
 
-// RejectSettlementRequest 驳回请求
-type RejectSettlementRequest struct {
+// RejectWithdrawRequest 驳回请求
+type RejectWithdrawRequest struct {
 	Remark string `json:"remark" binding:"required"`
 }
 
-// RejectSettlement 驳回结算
-func RejectSettlement(c *gin.Context) {
+// RejectWithdraw 驳回提现
+func RejectWithdraw(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		response.ParamError(c, "无效的结算ID")
+		response.ParamError(c, "无效的提现ID")
 		return
 	}
 
-	var req RejectSettlementRequest
+	var req RejectWithdrawRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ParamError(c, "请填写驳回原因")
 		return
 	}
 
-	settlementService := service.NewSettlementService()
-	if err := settlementService.Reject(id, req.Remark); err != nil {
+	withdrawService := service.NewWithdrawService()
+	if err := withdrawService.Reject(id, req.Remark); err != nil {
 		response.ServerError(c, err.Error())
 		return
 	}

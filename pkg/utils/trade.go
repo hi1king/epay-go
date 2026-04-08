@@ -15,12 +15,12 @@ func GenerateTradeNo() string {
 	return fmt.Sprintf("%s%x", timestamp, random)
 }
 
-// GenerateSettleNo 生成结算单号
-func GenerateSettleNo() string {
+// GenerateWithdrawNo 生成提现单号
+func GenerateWithdrawNo() string {
 	timestamp := time.Now().Format("20060102150405")
 	random := make([]byte, 4)
 	rand.Read(random)
-	return fmt.Sprintf("S%s%x", timestamp, random)
+	return fmt.Sprintf("W%s%x", timestamp, random)
 }
 
 // GenerateAPIKey 生成商户API密钥 (32位)

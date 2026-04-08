@@ -27,10 +27,10 @@ func registerMerchantRoutes(r *gin.Engine) {
 			merchantAuth.GET("/orders", merchant.ListOrders)
 			merchantAuth.GET("/orders/:trade_no", merchant.GetOrder)
 
-			merchantAuth.GET("/settlements", merchant.ListSettlements)
-			merchantAuth.POST("/settlements", merchant.ApplySettlement)
+			merchantAuth.GET("/withdrawals", merchant.ListWithdraws)
+			merchantAuth.POST("/withdrawals", merchant.ApplyWithdraw)
 
-			merchantAuth.GET("/records", merchant.ListRecords)
+			merchantAuth.GET("/balance-logs", merchant.ListBalanceLogs)
 
 			merchantAuth.POST("/refunds", merchant.CreateRefund)
 			merchantAuth.GET("/refunds", merchant.ListRefunds)

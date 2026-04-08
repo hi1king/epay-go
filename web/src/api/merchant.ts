@@ -1,6 +1,6 @@
 // web/src/api/merchant.ts
 import request from './request'
-import type { ApiResponse, PageData, Merchant, Order, Settlement, BalanceRecord, Refund } from './types'
+import type { ApiResponse, PageData, Merchant, Order, Withdrawal, MerchantBalanceLog, Refund } from './types'
 
  const merchantApiBase = '/api/merchant'
 
@@ -49,24 +49,24 @@ export function getOrder(tradeNo: string) {
   return request.get<any, ApiResponse<Order>>(`${merchantApiBase}/orders/${tradeNo}`)
 }
 
-// 结算列表
-export function getSettlements(params: { page: number; page_size: number; status?: number }) {
-  return request.get<any, ApiResponse<PageData<Settlement>>>(`${merchantApiBase}/settlements`, { params })
+// 提现列表
+export function getWithdrawals(params: { page: number; page_size: number; status?: number }) {
+  return request.get<any, ApiResponse<PageData<Withdrawal>>>(`${merchantApiBase}/withdrawals`, { params })
 }
 
-// 申请结算
-export function applySettlement(data: {
+// 申请提现
+export function applyWithdrawal(data: {
   amount: string
   account_type: string
   account_no: string
   account_name: string
 }) {
-  return request.post<any, ApiResponse>(`${merchantApiBase}/settlements`, data)
+  return request.post<any, ApiResponse>(`${merchantApiBase}/withdrawals`, data)
 }
 
-// 资金记录
-export function getRecords(params: { page: number; page_size: number }) {
-  return request.get<any, ApiResponse<PageData<BalanceRecord>>>(`${merchantApiBase}/records`, { params })
+// 余额日志
+export function getBalanceLogs(params: { page: number; page_size: number }) {
+  return request.get<any, ApiResponse<PageData<MerchantBalanceLog>>>(`${merchantApiBase}/balance-logs`, { params })
 }
 
 // 退款管理

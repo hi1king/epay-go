@@ -1,4 +1,4 @@
-// internal/service/admin_service.go
+// internal/service/admin_user_service.go
 package service
 
 import (
@@ -11,18 +11,18 @@ import (
 	"gorm.io/gorm"
 )
 
-type AdminService struct {
-	repo *repository.AdminRepository
+type AdminUserService struct {
+	repo *repository.AdminUserRepository
 }
 
-func NewAdminService() *AdminService {
-	return &AdminService{
-		repo: repository.NewAdminRepository(),
+func NewAdminUserService() *AdminUserService {
+	return &AdminUserService{
+		repo: repository.NewAdminUserRepository(),
 	}
 }
 
 // InitDefaultAdmin 初始化默认管理员（如果不存在）
-func (s *AdminService) InitDefaultAdmin() error {
+func (s *AdminUserService) InitDefaultAdmin() error {
 	count, err := s.repo.Count()
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func (s *AdminService) InitDefaultAdmin() error {
 		return err
 	}
 
-	admin := &model.Admin{
+	admin := &model.AdminUser{
 		Username: username,
 		Password: hashedPassword,
 		Role:     "super",
@@ -57,14 +57,14 @@ func (s *AdminService) InitDefaultAdmin() error {
 	return s.repo.Create(admin)
 }
 
-// AdminLoginRequest 管理员登录请求
-type AdminLoginRequest struct {
+// AdminUserLoginRequest 管理员登录请求
+type AdminUserLoginRequest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
 // Login 管理员登录
-func (s *AdminService) Login(req *AdminLoginRequest) (*model.Admin, error) {
+func (s *AdminUserService) Login(req *AdminUserLoginRequest) (*model.AdminUser, error) {
 	admin, err := s.repo.GetByUsername(req.Username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -84,12 +84,12 @@ func (s *AdminService) Login(req *AdminLoginRequest) (*model.Admin, error) {
 }
 
 // GetByID 根据ID获取管理员
-func (s *AdminService) GetByID(id int64) (*model.Admin, error) {
+func (s *AdminUserService) GetByID(id int64) (*model.AdminUser, error) {
 	return s.repo.GetByID(id)
 }
 
 // UpdatePassword 更新密码
-func (s *AdminService) UpdatePassword(id int64, oldPassword, newPassword string) error {
+func (s *AdminUserService) UpdatePassword(id int64, oldPassword, newPassword string) error {
 	admin, err := s.repo.GetByID(id)
 	if err != nil {
 		return err

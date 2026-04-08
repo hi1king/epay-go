@@ -1,14 +1,14 @@
-// internal/model/settlement.go
+// internal/model/withdraw.go
 package model
 
 import (
 	"github.com/shopspring/decimal"
 )
 
-// Settlement 结算记录
-type Settlement struct {
+// Withdraw 提现记录
+type Withdraw struct {
 	BaseModel
-	SettleNo     string          `gorm:"size:32;uniqueIndex;not null" json:"settle_no"`
+	WithdrawNo   string          `gorm:"size:32;uniqueIndex;not null" json:"withdraw_no"`
 	MerchantID   int64           `gorm:"index;not null" json:"merchant_id"`
 	Amount       decimal.Decimal `gorm:"type:decimal(12,2);not null" json:"amount"`
 	Fee          decimal.Decimal `gorm:"type:decimal(12,2);default:0" json:"fee"`
@@ -23,14 +23,14 @@ type Settlement struct {
 	Merchant *Merchant `gorm:"foreignKey:MerchantID" json:"merchant,omitempty"`
 }
 
-func (Settlement) TableName() string {
-	return "settlements"
+func (Withdraw) TableName() string {
+	return "withdrawals"
 }
 
-// 结算状态常量
+// 提现状态常量
 const (
-	SettleStatusPending    = 0
-	SettleStatusProcessing = 1
-	SettleStatusCompleted  = 2
-	SettleStatusRejected   = 3
+	WithdrawStatusPending    = 0
+	WithdrawStatusProcessing = 1
+	WithdrawStatusCompleted  = 2
+	WithdrawStatusRejected   = 3
 )

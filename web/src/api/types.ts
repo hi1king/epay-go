@@ -59,10 +59,10 @@ export interface Channel {
   sort: number
 }
 
-// 结算
-export interface Settlement {
+// 提现
+export interface Withdrawal {
   id: number
-  settle_no: string
+  withdraw_no: string
   merchant_id: number
   amount: string
   fee: string
@@ -75,8 +75,8 @@ export interface Settlement {
   created_at: string
 }
 
-// 资金记录
-export interface BalanceRecord {
+// 余额日志
+export interface MerchantBalanceLog {
   id: number
   merchant_id: number
   action: number

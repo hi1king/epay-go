@@ -108,7 +108,7 @@ func LegacyAPI(c *gin.Context) {
 	merchantService := service.NewMerchantService()
 	orderService := service.NewOrderService()
 	refundService := service.NewRefundService()
-	settlementService := service.NewSettlementService()
+	withdrawService := service.NewWithdrawService()
 
 	resolved, err := resolveLegacyMerchant(merchantService, req.Pid)
 	if err != nil {
@@ -212,16 +212,16 @@ func LegacyAPI(c *gin.Context) {
 			"data":  list,
 		})
 	case "settle":
-		settlements, total, err := settlementService.List(1, 100, &merchant.ID, nil)
+		withdraws, total, err := withdrawService.List(1, 100, &merchant.ID, nil)
 		if err != nil {
 			legacyError(c, "获取结算记录失败")
 			return
 		}
 
-		list := make([]gin.H, 0, len(settlements))
-		for _, item := range settlements {
+		list := make([]gin.H, 0, len(withdraws))
+		for _, item := range withdraws {
 			list = append(list, gin.H{
-				"settle_no":    item.SettleNo,
+				"withdraw_no":  item.WithdrawNo,
 				"money":        item.Amount.StringFixed(2),
 				"fee":          item.Fee.StringFixed(2),
 				"actual_money": item.ActualAmount.StringFixed(2),

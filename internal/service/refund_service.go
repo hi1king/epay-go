@@ -15,18 +15,18 @@ import (
 )
 
 type RefundService struct {
-	refundRepo   *repository.RefundRepository
-	orderRepo    *repository.OrderRepository
-	merchantRepo *repository.MerchantRepository
-	recordRepo   *repository.BalanceRecordRepository
+	refundRepo     *repository.RefundRepository
+	orderRepo      *repository.OrderRepository
+	merchantRepo   *repository.MerchantRepository
+	balanceLogRepo *repository.MerchantBalanceLogRepository
 }
 
 func NewRefundService() *RefundService {
 	return &RefundService{
-		refundRepo:   repository.NewRefundRepository(),
-		orderRepo:    repository.NewOrderRepository(),
-		merchantRepo: repository.NewMerchantRepository(),
-		recordRepo:   repository.NewBalanceRecordRepository(),
+		refundRepo:     repository.NewRefundRepository(),
+		orderRepo:      repository.NewOrderRepository(),
+		merchantRepo:   repository.NewMerchantRepository(),
+		balanceLogRepo: repository.NewMerchantBalanceLogRepository(),
 	}
 }
 
@@ -208,16 +208,16 @@ func (s *RefundService) ProcessRefund(refundNo string, success bool, failReason 
 			return err
 		}
 
-		record := &model.BalanceRecord{
+		record := &model.MerchantBalanceLog{
 			MerchantID:    refund.MerchantID,
-			Action:        model.RecordActionExpense,
+			Action:        model.BalanceActionExpense,
 			Amount:        amount,
 			BeforeBalance: beforeBalance,
 			AfterBalance:  afterBalance,
 			Type:          "refund",
 			TradeNo:       refund.RefundNo,
 		}
-		if err := s.recordRepo.CreateWithTx(tx, record); err != nil {
+		if err := s.balanceLogRepo.CreateWithTx(tx, record); err != nil {
 			tx.Rollback()
 			return err
 		}

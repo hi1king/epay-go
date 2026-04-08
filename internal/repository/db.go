@@ -67,13 +67,13 @@ func MigrateDB() error {
 	log.Println("Running database migrations...")
 
 	if err := db.AutoMigrate(
-		&model.Admin{},
+		&model.AdminUser{},
 		&model.Merchant{},
 		&model.Channel{},
 		&model.Order{},
-		&model.Settlement{},
-		&model.BalanceRecord{},
-		&model.Config{},
+		&model.Withdraw{},
+		&model.MerchantBalanceLog{},
+		&model.SystemConfig{},
 		&model.Refund{},
 	); err != nil {
 		return err

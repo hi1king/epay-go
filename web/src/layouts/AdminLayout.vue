@@ -26,9 +26,9 @@
           <template #icon><icon-apps /></template>
           通道管理
         </a-menu-item>
-        <a-menu-item key="settlements">
+        <a-menu-item key="withdrawals">
           <template #icon><icon-swap /></template>
-          结算管理
+          提现管理
         </a-menu-item>
         <a-menu-item key="refunds">
           <template #icon><icon-undo /></template>

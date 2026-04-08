@@ -23,8 +23,8 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	adminService := service.NewAdminService()
-	admin, err := adminService.Login(&service.AdminLoginRequest{
+	adminService := service.NewAdminUserService()
+	admin, err := adminService.Login(&service.AdminUserLoginRequest{
 		Username: req.Username,
 		Password: req.Password,
 	})
@@ -70,7 +70,7 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	adminService := service.NewAdminService()
+	adminService := service.NewAdminUserService()
 	if err := adminService.UpdatePassword(adminID, req.OldPassword, req.NewPassword); err != nil {
 		response.Error(c, response.CodeParamError, err.Error())
 		return

@@ -39,9 +39,9 @@ func registerAdminRoutes(r *gin.Engine) {
 
 			adminAuth.POST("/test-payment", admin.TestPayment)
 
-			adminAuth.GET("/settlements", admin.ListSettlements)
-			adminAuth.PATCH("/settlements/:id/approve", admin.ApproveSettlement)
-			adminAuth.PATCH("/settlements/:id/reject", admin.RejectSettlement)
+			adminAuth.GET("/withdrawals", admin.ListWithdraws)
+			adminAuth.PATCH("/withdrawals/:id/approve", admin.ApproveWithdraw)
+			adminAuth.PATCH("/withdrawals/:id/reject", admin.RejectWithdraw)
 
 			adminAuth.POST("/refunds", admin.CreateRefund)
 			adminAuth.GET("/refunds", admin.ListRefunds)

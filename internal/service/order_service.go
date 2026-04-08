@@ -16,18 +16,18 @@ import (
 )
 
 type OrderService struct {
-	orderRepo    *repository.OrderRepository
-	channelRepo  *repository.ChannelRepository
-	merchantRepo *repository.MerchantRepository
-	recordRepo   *repository.BalanceRecordRepository
+	orderRepo      *repository.OrderRepository
+	channelRepo    *repository.ChannelRepository
+	merchantRepo   *repository.MerchantRepository
+	balanceLogRepo *repository.MerchantBalanceLogRepository
 }
 
 func NewOrderService() *OrderService {
 	return &OrderService{
-		orderRepo:    repository.NewOrderRepository(),
-		channelRepo:  repository.NewChannelRepository(),
-		merchantRepo: repository.NewMerchantRepository(),
-		recordRepo:   repository.NewBalanceRecordRepository(),
+		orderRepo:      repository.NewOrderRepository(),
+		channelRepo:    repository.NewChannelRepository(),
+		merchantRepo:   repository.NewMerchantRepository(),
+		balanceLogRepo: repository.NewMerchantBalanceLogRepository(),
 	}
 }
 
@@ -203,7 +203,7 @@ func (s *OrderService) ProcessPayNotify(tradeNo, apiTradeNo, buyer string, amoun
 	}
 
 	// 添加资金记录
-	if err := repository.AddBalanceRecord(tx, merchant.ID, model.RecordActionIncome, income, merchant.Balance, newBalance, "order_income", tradeNo); err != nil {
+	if err := repository.AddMerchantBalanceLog(tx, merchant.ID, model.BalanceActionIncome, income, merchant.Balance, newBalance, "order_income", tradeNo); err != nil {
 		tx.Rollback()
 		return err
 	}

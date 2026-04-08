@@ -47,7 +47,7 @@ func main() {
 	defer repository.CloseRedis()
 
 	// 初始化默认管理员
-	adminService := service.NewAdminService()
+	adminService := service.NewAdminUserService()
 	if err := adminService.InitDefaultAdmin(); err != nil {
 		log.Printf("Failed to init default admin: %v", err)
 	}

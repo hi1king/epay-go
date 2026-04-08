@@ -18,13 +18,13 @@
           <template #icon><icon-file /></template>
           订单管理
         </a-menu-item>
-        <a-menu-item key="settlements">
+        <a-menu-item key="withdrawals">
           <template #icon><icon-swap /></template>
-          结算管理
+          提现管理
         </a-menu-item>
-        <a-menu-item key="records">
+        <a-menu-item key="balance-logs">
           <template #icon><icon-history /></template>
-          资金记录
+          余额日志
         </a-menu-item>
         <a-menu-item key="profile">
           <template #icon><icon-settings /></template>

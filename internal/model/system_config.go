@@ -1,15 +1,15 @@
-// internal/model/config.go
+// internal/model/system_config.go
 package model
 
 import "time"
 
-// Config 系统配置
-type Config struct {
+// SystemConfig 系统配置
+type SystemConfig struct {
 	Key       string    `gorm:"size:64;primarykey" json:"key"`
 	Value     string    `gorm:"type:text" json:"value"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func (Config) TableName() string {
-	return "configs"
+func (SystemConfig) TableName() string {
+	return "system_configs"
 }

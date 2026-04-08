@@ -1,6 +1,6 @@
 // web/src/api/admin.ts
 import request from './request'
-import type { ApiResponse, PageData, Merchant, Order, Channel, Settlement, Refund, PluginConfig } from './types'
+import type { ApiResponse, PageData, Merchant, Order, Channel, Withdrawal, Refund, PluginConfig } from './types'
 
  const adminApiBase = '/api/admin'
 
@@ -77,19 +77,19 @@ export const getPlugins = () =>
 export const getPluginConfig = (plugin: string) =>
   request.get<any, ApiResponse<PluginConfig>>(`${adminApiBase}/plugins/${plugin}/config`)
 
-// 结算列表
-export function getSettlements(params: { page: number; page_size: number; merchant_id?: number; status?: number }) {
-  return request.get<any, ApiResponse<PageData<Settlement>>>(`${adminApiBase}/settlements`, { params })
+// 提现列表
+export function getWithdrawals(params: { page: number; page_size: number; merchant_id?: number; status?: number }) {
+  return request.get<any, ApiResponse<PageData<Withdrawal>>>(`${adminApiBase}/withdrawals`, { params })
 }
 
 // 审核通过
-export function approveSettlement(id: number) {
-  return request.patch<any, ApiResponse>(`${adminApiBase}/settlements/${id}/approve`)
+export function approveWithdrawal(id: number) {
+  return request.patch<any, ApiResponse>(`${adminApiBase}/withdrawals/${id}/approve`)
 }
 
 // 驳回
-export function rejectSettlement(id: number, remark: string) {
-  return request.patch<any, ApiResponse>(`${adminApiBase}/settlements/${id}/reject`, { remark })
+export function rejectWithdrawal(id: number, remark: string) {
+  return request.patch<any, ApiResponse>(`${adminApiBase}/withdrawals/${id}/reject`, { remark })
 }
 
 // 退款管理

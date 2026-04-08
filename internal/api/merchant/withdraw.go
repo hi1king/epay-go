@@ -1,4 +1,4 @@
-// internal/handler/merchant/settlement.go
+// internal/api/merchant/withdraw.go
 package merchant
 
 import (
@@ -11,8 +11,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// ListSettlements 结算列表
-func ListSettlements(c *gin.Context) {
+// ListWithdraws 提现列表
+func ListWithdraws(c *gin.Context) {
 	merchantID := middleware.GetUserID(c)
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
@@ -24,29 +24,29 @@ func ListSettlements(c *gin.Context) {
 		status = &v8
 	}
 
-	settlementService := service.NewSettlementService()
-	settlements, total, err := settlementService.List(page, pageSize, &merchantID, status)
+	withdrawService := service.NewWithdrawService()
+	withdraws, total, err := withdrawService.List(page, pageSize, &merchantID, status)
 	if err != nil {
-		response.ServerError(c, "获取结算列表失败")
+		response.ServerError(c, "获取提现列表失败")
 		return
 	}
 
-	response.SuccessPage(c, settlements, total, page, pageSize)
+	response.SuccessPage(c, withdraws, total, page, pageSize)
 }
 
-// ApplySettlementRequest 申请结算请求
-type ApplySettlementRequest struct {
+// ApplyWithdrawRequest 申请提现请求
+type ApplyWithdrawRequest struct {
 	Amount      string `json:"amount" binding:"required"`
 	AccountType string `json:"account_type" binding:"required,oneof=alipay bank"`
 	AccountNo   string `json:"account_no" binding:"required"`
 	AccountName string `json:"account_name" binding:"required"`
 }
 
-// ApplySettlement 申请结算
-func ApplySettlement(c *gin.Context) {
+// ApplyWithdraw 申请提现
+func ApplyWithdraw(c *gin.Context) {
 	merchantID := middleware.GetUserID(c)
 
-	var req ApplySettlementRequest
+	var req ApplyWithdrawRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ParamError(c, "参数错误: "+err.Error())
 		return
@@ -58,8 +58,8 @@ func ApplySettlement(c *gin.Context) {
 		return
 	}
 
-	settlementService := service.NewSettlementService()
-	settlement, err := settlementService.Apply(&service.ApplyRequest{
+	withdrawService := service.NewWithdrawService()
+	withdraw, err := withdrawService.Apply(&service.ApplyWithdrawRequest{
 		MerchantID:  merchantID,
 		Amount:      amount,
 		AccountType: req.AccountType,
@@ -71,5 +71,5 @@ func ApplySettlement(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, settlement)
+	response.Success(c, withdraw)
 }

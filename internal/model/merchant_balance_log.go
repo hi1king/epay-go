@@ -1,12 +1,12 @@
-// internal/model/record.go
+// internal/model/merchant_balance_log.go
 package model
 
 import (
 	"github.com/shopspring/decimal"
 )
 
-// BalanceRecord 资金变动记录
-type BalanceRecord struct {
+// MerchantBalanceLog 资金变动记录
+type MerchantBalanceLog struct {
 	BaseModel
 	MerchantID    int64           `gorm:"index;not null" json:"merchant_id"`
 	Action        int8            `gorm:"not null" json:"action"` // 1收入 2支出
@@ -20,12 +20,12 @@ type BalanceRecord struct {
 	Merchant *Merchant `gorm:"foreignKey:MerchantID" json:"merchant,omitempty"`
 }
 
-func (BalanceRecord) TableName() string {
-	return "balance_records"
+func (MerchantBalanceLog) TableName() string {
+	return "merchant_balance_logs"
 }
 
 // 资金变动类型常量
 const (
-	RecordActionIncome  = 1
-	RecordActionExpense = 2
+	BalanceActionIncome  = 1
+	BalanceActionExpense = 2
 )
