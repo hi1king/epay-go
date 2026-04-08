@@ -1,4 +1,4 @@
-// internal/service/admin.go
+// internal/service/admin_service.go
 package service
 
 import (

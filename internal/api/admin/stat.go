@@ -1,4 +1,4 @@
-// internal/handler/admin/dashboard.go
+// internal/api/admin/stat.go
 package admin
 
 import (

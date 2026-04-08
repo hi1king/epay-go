@@ -1,4 +1,4 @@
-// internal/service/merchant.go
+// internal/service/merchant_service.go
 package service
 
 import (

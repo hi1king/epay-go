@@ -1,4 +1,4 @@
-// internal/service/notify.go
+// internal/service/notify_service.go
 package service
 
 import (

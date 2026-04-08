@@ -1,4 +1,4 @@
-// internal/repository/merchant.go
+// internal/repository/merchant_repo.go
 package repository
 
 import (

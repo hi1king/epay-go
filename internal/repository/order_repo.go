@@ -1,4 +1,4 @@
-// internal/repository/order.go
+// internal/repository/order_repo.go
 package repository
 
 import (

@@ -1,4 +1,4 @@
-// internal/service/settlement.go
+// internal/service/settlement_service.go
 package service
 
 import (

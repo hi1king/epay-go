@@ -1,4 +1,4 @@
-// internal/handler/admin/test_payment.go
+// internal/api/admin/debug_payment.go
 package admin
 
 import (

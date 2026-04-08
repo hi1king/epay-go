@@ -1,4 +1,4 @@
-// internal/repository/settlement.go
+// internal/repository/settlement_repo.go
 package repository
 
 import (

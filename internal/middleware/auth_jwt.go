@@ -1,4 +1,4 @@
-// internal/middleware/auth.go
+// internal/middleware/auth_jwt.go
 package middleware
 
 import (

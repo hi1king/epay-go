@@ -1,4 +1,4 @@
-// internal/repository/admin.go
+// internal/repository/admin_repo.go
 package repository
 
 import (

@@ -1,4 +1,4 @@
-// internal/repository/record.go
+// internal/repository/balance_record_repo.go
 package repository
 
 import (

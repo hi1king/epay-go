@@ -1,4 +1,4 @@
-// internal/repository/channel.go
+// internal/repository/channel_repo.go
 package repository
 
 import (

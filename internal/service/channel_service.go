@@ -1,4 +1,4 @@
-// internal/service/channel.go
+// internal/service/channel_service.go
 package service
 
 import (
@@ -25,7 +25,7 @@ type CreateChannelRequest struct {
 	Name       string                 `json:"name" binding:"required"`
 	Plugin     string                 `json:"plugin" binding:"required"`
 	PayTypes   string                 `json:"pay_types"`
-	AppType    string                 `json:"app_type"`  // 支持的接口类型
+	AppType    string                 `json:"app_type"` // 支持的接口类型
 	Config     map[string]interface{} `json:"config"`
 	Rate       float64                `json:"rate"`
 	DailyLimit float64                `json:"daily_limit"`

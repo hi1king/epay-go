@@ -1,4 +1,4 @@
-// internal/handler/merchant/dashboard.go
+// internal/api/merchant/stat.go
 package merchant
 
 import (

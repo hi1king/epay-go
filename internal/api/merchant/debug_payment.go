@@ -1,3 +1,4 @@
+// internal/api/merchant/debug_payment.go
 package merchant
 
 import (
