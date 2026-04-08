@@ -4,7 +4,6 @@ package repository
 import (
 	"strings"
 
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -14,7 +13,7 @@ type ChannelRepository struct {
 }
 
 func NewChannelRepository() *ChannelRepository {
-	return &ChannelRepository{db: database.Get()}
+	return &ChannelRepository{db: GetDB()}
 }
 
 // Create 创建通道

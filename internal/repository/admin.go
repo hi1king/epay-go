@@ -4,7 +4,6 @@ package repository
 import (
 	"time"
 
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -14,7 +13,7 @@ type AdminRepository struct {
 }
 
 func NewAdminRepository() *AdminRepository {
-	return &AdminRepository{db: database.Get()}
+	return &AdminRepository{db: GetDB()}
 }
 
 // Create 创建管理员

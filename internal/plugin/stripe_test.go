@@ -1,3 +1,4 @@
+// internal/plugin/stripe_test.go
 package payment
 
 import (

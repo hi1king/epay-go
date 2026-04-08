@@ -1,4 +1,4 @@
-// internal/handler/payment/create.go
+// internal/api/pay/submit.go
 package payment
 
 import (
@@ -16,15 +16,15 @@ import (
 
 // CreateOrderRequest 创建订单请求（兼容原epay）
 type CreateOrderRequest struct {
-	Pid        string `form:"pid" binding:"required"`         // 商户ID
-	Type       string `form:"type" binding:"required"`        // 支付类型
-	OutTradeNo string `form:"out_trade_no" binding:"required"`// 商户订单号
-	NotifyURL  string `form:"notify_url" binding:"required"`  // 异步通知地址
-	ReturnURL  string `form:"return_url"`                     // 同步跳转地址
-	Name       string `form:"name" binding:"required"`        // 商品名称
-	Money      string `form:"money" binding:"required"`       // 金额
-	Sign       string `form:"sign" binding:"required"`        // 签名
-	SignType   string `form:"sign_type"`                      // 签名类型
+	Pid        string `form:"pid" binding:"required"`          // 商户ID
+	Type       string `form:"type" binding:"required"`         // 支付类型
+	OutTradeNo string `form:"out_trade_no" binding:"required"` // 商户订单号
+	NotifyURL  string `form:"notify_url" binding:"required"`   // 异步通知地址
+	ReturnURL  string `form:"return_url"`                      // 同步跳转地址
+	Name       string `form:"name" binding:"required"`         // 商品名称
+	Money      string `form:"money" binding:"required"`        // 金额
+	Sign       string `form:"sign" binding:"required"`         // 签名
+	SignType   string `form:"sign_type"`                       // 签名类型
 }
 
 // CreateOrder 创建支付订单
@@ -83,17 +83,17 @@ func CreateOrder(c *gin.Context) {
 
 	platformBaseURL := getPaymentBaseURL(c)
 	orderReq := &service.CreateOrderRequest{
-		MerchantID:      merchant.ID,
-		OutTradeNo:      req.OutTradeNo,
-		Amount:          amount,
-		Name:            req.Name,
-		PayType:         routing.PayType,
-		NotifyURL:       req.NotifyURL,
+		MerchantID:        merchant.ID,
+		OutTradeNo:        req.OutTradeNo,
+		Amount:            amount,
+		Name:              req.Name,
+		PayType:           routing.PayType,
+		NotifyURL:         req.NotifyURL,
 		MerchantNotifyURL: req.NotifyURL,
-		PlatformBaseURL: platformBaseURL,
-		ReturnURL:       req.ReturnURL,
-		ClientIP:        utils.GetClientIP(c),
-		PayMethod:       routing.PayMethod,
+		PlatformBaseURL:   platformBaseURL,
+		ReturnURL:         req.ReturnURL,
+		ClientIP:          utils.GetClientIP(c),
+		PayMethod:         routing.PayMethod,
 	}
 
 	orderResp, err := orderService.Create(context.Background(), orderReq)

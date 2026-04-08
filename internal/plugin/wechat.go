@@ -1,4 +1,4 @@
-// internal/payment/wechat.go
+// internal/plugin/wechat.go
 package payment
 
 import (
@@ -14,13 +14,13 @@ import (
 
 // WechatConfig 微信支付配置
 type WechatConfig struct {
-	MchID               string `json:"mch_id"`                 // 商户号
-	AppID               string `json:"app_id"`                 // 应用ID
-	APIv3Key            string `json:"api_v3_key"`             // APIv3密钥
-	SerialNo            string `json:"serial_no"`              // 证书序列号
-	PrivateKey          string `json:"private_key"`            // 私钥内容
-	PlatformSerialNo    string `json:"platform_serial_no"`     // 平台证书序列号
-	PlatformCertContent string `json:"platform_cert_content"`  // 平台证书内容
+	MchID               string `json:"mch_id"`                // 商户号
+	AppID               string `json:"app_id"`                // 应用ID
+	APIv3Key            string `json:"api_v3_key"`            // APIv3密钥
+	SerialNo            string `json:"serial_no"`             // 证书序列号
+	PrivateKey          string `json:"private_key"`           // 私钥内容
+	PlatformSerialNo    string `json:"platform_serial_no"`    // 平台证书序列号
+	PlatformCertContent string `json:"platform_cert_content"` // 平台证书内容
 }
 
 // WechatAdapter 微信支付适配器

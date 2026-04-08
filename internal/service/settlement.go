@@ -4,7 +4,6 @@ package service
 import (
 	"errors"
 
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"github.com/example/epay-go/internal/repository"
 	"github.com/example/epay-go/pkg/utils"
@@ -80,7 +79,7 @@ func (s *SettlementService) Apply(req *ApplyRequest) (*model.Settlement, error) 
 	}
 
 	// 开启事务
-	tx := database.Get().Begin()
+	tx := repository.GetDB().Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -142,7 +141,7 @@ func (s *SettlementService) Complete(id int64) error {
 	}
 
 	// 开启事务
-	tx := database.Get().Begin()
+	tx := repository.GetDB().Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -178,7 +177,7 @@ func (s *SettlementService) Reject(id int64, remark string) error {
 	}
 
 	// 开启事务
-	tx := database.Get().Begin()
+	tx := repository.GetDB().Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()

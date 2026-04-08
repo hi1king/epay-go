@@ -1,4 +1,4 @@
-// internal/handler/payment/query.go
+// internal/api/pay/query.go
 package payment
 
 import (
@@ -91,10 +91,10 @@ func PublicOrderStatus(c *gin.Context) {
 
 	paid := order.Status == model.OrderStatusPaid
 	response.Success(c, gin.H{
-		"trade_no":    order.TradeNo,
+		"trade_no":     order.TradeNo,
 		"out_trade_no": order.OutTradeNo,
-		"status":      order.Status,
-		"paid":        paid,
-		"return_url":  order.ReturnURL,
+		"status":       order.Status,
+		"paid":         paid,
+		"return_url":   order.ReturnURL,
 	})
 }

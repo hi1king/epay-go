@@ -2,7 +2,6 @@
 package repository
 
 import (
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -13,7 +12,7 @@ type BalanceRecordRepository struct {
 }
 
 func NewBalanceRecordRepository() *BalanceRecordRepository {
-	return &BalanceRecordRepository{db: database.Get()}
+	return &BalanceRecordRepository{db: GetDB()}
 }
 
 // Create 创建资金记录

@@ -2,7 +2,6 @@
 package repository
 
 import (
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -12,7 +11,7 @@ type MerchantRepository struct {
 }
 
 func NewMerchantRepository() *MerchantRepository {
-	return &MerchantRepository{db: database.Get()}
+	return &MerchantRepository{db: GetDB()}
 }
 
 // Create 创建商户

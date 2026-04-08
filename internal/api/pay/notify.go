@@ -1,4 +1,4 @@
-// internal/handler/payment/notify.go
+// internal/api/pay/notify.go
 package payment
 
 import (
@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/example/epay-go/internal/model"
-	intPayment "github.com/example/epay-go/internal/payment"
+	intPayment "github.com/example/epay-go/internal/plugin"
 	"github.com/example/epay-go/internal/repository"
 	"github.com/example/epay-go/internal/service"
 	"github.com/gin-gonic/gin"

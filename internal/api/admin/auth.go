@@ -1,4 +1,4 @@
-// internal/handler/admin/auth.go
+// internal/api/admin/auth.go
 package admin
 
 import (

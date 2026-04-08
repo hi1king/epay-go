@@ -6,9 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
-	"github.com/example/epay-go/internal/payment"
+	payment "github.com/example/epay-go/internal/plugin"
 	"github.com/example/epay-go/internal/repository"
 	"github.com/example/epay-go/pkg/utils"
 	"github.com/shopspring/decimal"
@@ -187,7 +186,7 @@ func (s *RefundService) ProcessRefund(refundNo string, success bool, failReason 
 		beforeBalance := merchant.Balance
 		afterBalance := beforeBalance.Sub(amount)
 
-		tx := database.Get().Begin()
+		tx := repository.GetDB().Begin()
 		defer func() {
 			if r := recover(); r != nil {
 				tx.Rollback()

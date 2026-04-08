@@ -1,5 +1,4 @@
-// internal/database/database.go
-package database
+package repository
 
 import (
 	"fmt"
@@ -7,14 +6,15 @@ import (
 	"time"
 
 	"github.com/example/epay-go/internal/config"
+	"github.com/example/epay-go/internal/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-var DB *gorm.DB
+var db *gorm.DB
 
-func Init() error {
+func InitDB() error {
 	cfg := config.Get().Database
 
 	dsn := fmt.Sprintf(
@@ -24,27 +24,22 @@ func Init() error {
 
 	var gormConfig *gorm.Config
 	if config.Get().Server.Mode == "debug" {
-		gormConfig = &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
-		}
+		gormConfig = &gorm.Config{Logger: logger.Default.LogMode(logger.Info)}
 	} else {
-		gormConfig = &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Silent),
-		}
+		gormConfig = &gorm.Config{Logger: logger.Default.LogMode(logger.Silent)}
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), gormConfig)
+	db, err = gorm.Open(postgres.Open(dsn), gormConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect database: %w", err)
 	}
 
-	sqlDB, err := DB.DB()
+	sqlDB, err := db.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get underlying sql.DB: %w", err)
 	}
 
-	// 连接池配置
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
@@ -53,14 +48,37 @@ func Init() error {
 	return nil
 }
 
-func Get() *gorm.DB {
-	return DB
+func GetDB() *gorm.DB {
+	return db
 }
 
-func Close() error {
-	sqlDB, err := DB.DB()
+func CloseDB() error {
+	if db == nil {
+		return nil
+	}
+	sqlDB, err := db.DB()
 	if err != nil {
 		return err
 	}
 	return sqlDB.Close()
+}
+
+func MigrateDB() error {
+	log.Println("Running database migrations...")
+
+	if err := db.AutoMigrate(
+		&model.Admin{},
+		&model.Merchant{},
+		&model.Channel{},
+		&model.Order{},
+		&model.Settlement{},
+		&model.BalanceRecord{},
+		&model.Config{},
+		&model.Refund{},
+	); err != nil {
+		return err
+	}
+
+	log.Println("Database migrations completed")
+	return nil
 }

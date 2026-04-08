@@ -11,16 +11,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/example/epay-go/internal/cache"
 	"github.com/example/epay-go/internal/config"
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/middleware"
+	"github.com/example/epay-go/internal/repository"
 	"github.com/example/epay-go/internal/router"
 	"github.com/example/epay-go/internal/service"
 	"github.com/gin-gonic/gin"
 
 	// 注册支付适配器
-	_ "github.com/example/epay-go/internal/payment"
+	_ "github.com/example/epay-go/internal/plugin"
 )
 
 func main() {
@@ -31,21 +30,21 @@ func main() {
 	cfg := config.Get()
 
 	// 初始化数据库
-	if err := database.Init(); err != nil {
+	if err := repository.InitDB(); err != nil {
 		log.Fatalf("Failed to init database: %v", err)
 	}
-	defer database.Close()
+	defer repository.CloseDB()
 
 	// 数据库迁移
-	if err := database.Migrate(); err != nil {
+	if err := repository.MigrateDB(); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
 
 	// 初始化 Redis
-	if err := cache.Init(); err != nil {
+	if err := repository.InitRedis(); err != nil {
 		log.Fatalf("Failed to init redis: %v", err)
 	}
-	defer cache.Close()
+	defer repository.CloseRedis()
 
 	// 初始化默认管理员
 	adminService := service.NewAdminService()

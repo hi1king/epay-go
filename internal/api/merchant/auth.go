@@ -1,4 +1,4 @@
-// internal/handler/merchant/auth.go
+// internal/api/merchant/auth.go
 package merchant
 
 import (
@@ -7,7 +7,6 @@ import (
 	"github.com/example/epay-go/pkg/response"
 	"github.com/gin-gonic/gin"
 )
-
 
 // RegisterRequest 注册请求
 type RegisterRequest struct {

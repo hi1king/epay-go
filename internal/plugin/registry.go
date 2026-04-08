@@ -1,4 +1,4 @@
-// internal/payment/factory.go
+// internal/plugin/registry.go
 package payment
 
 import (

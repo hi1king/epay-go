@@ -2,7 +2,6 @@
 package repository
 
 import (
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -12,7 +11,7 @@ type RefundRepository struct {
 }
 
 func NewRefundRepository() *RefundRepository {
-	return &RefundRepository{db: database.Get()}
+	return &RefundRepository{db: GetDB()}
 }
 
 // Create 创建退款单

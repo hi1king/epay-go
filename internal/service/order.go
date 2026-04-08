@@ -8,9 +8,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
-	"github.com/example/epay-go/internal/payment"
+	payment "github.com/example/epay-go/internal/plugin"
 	"github.com/example/epay-go/internal/repository"
 	"github.com/example/epay-go/pkg/utils"
 	"github.com/shopspring/decimal"
@@ -173,7 +172,7 @@ func (s *OrderService) ProcessPayNotify(tradeNo, apiTradeNo, buyer string, amoun
 	}
 
 	// 开启事务
-	tx := database.Get().Begin()
+	tx := repository.GetDB().Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()

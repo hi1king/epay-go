@@ -1,5 +1,4 @@
-// internal/cache/redis.go
-package cache
+package repository
 
 import (
 	"context"
@@ -11,12 +10,12 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var RDB *redis.Client
+var redisClient *redis.Client
 
-func Init() error {
+func InitRedis() error {
 	cfg := config.Get().Redis
 
-	RDB = redis.NewClient(&redis.Options{
+	redisClient = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
 		Password: cfg.Password,
 		DB:       cfg.DB,
@@ -25,7 +24,7 @@ func Init() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := RDB.Ping(ctx).Err(); err != nil {
+	if err := redisClient.Ping(ctx).Err(); err != nil {
 		return fmt.Errorf("failed to connect redis: %w", err)
 	}
 
@@ -33,10 +32,13 @@ func Init() error {
 	return nil
 }
 
-func Get() *redis.Client {
-	return RDB
+func GetRedis() *redis.Client {
+	return redisClient
 }
 
-func Close() error {
-	return RDB.Close()
+func CloseRedis() error {
+	if redisClient == nil {
+		return nil
+	}
+	return redisClient.Close()
 }

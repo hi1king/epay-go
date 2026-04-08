@@ -4,7 +4,6 @@ package repository
 import (
 	"time"
 
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -15,7 +14,7 @@ type OrderRepository struct {
 }
 
 func NewOrderRepository() *OrderRepository {
-	return &OrderRepository{db: database.Get()}
+	return &OrderRepository{db: GetDB()}
 }
 
 // Create 创建订单

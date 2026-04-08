@@ -1,4 +1,4 @@
-// internal/payment/alipay.go
+// internal/plugin/alipay.go
 package payment
 
 import (

@@ -7,7 +7,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 // Dashboard 仪表盘数据
 func Dashboard(c *gin.Context) {
 	orderService := service.NewOrderService()

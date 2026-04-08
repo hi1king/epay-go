@@ -1,15 +1,14 @@
-// internal/handler/admin/channel.go
+// internal/api/admin/channel.go
 package admin
 
 import (
 	"strconv"
 
-	"github.com/example/epay-go/internal/payment"
+	payment "github.com/example/epay-go/internal/plugin"
 	"github.com/example/epay-go/internal/service"
 	"github.com/example/epay-go/pkg/response"
 	"github.com/gin-gonic/gin"
 )
-
 
 // ListChannels 通道列表
 func ListChannels(c *gin.Context) {

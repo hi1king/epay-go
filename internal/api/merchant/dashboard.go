@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 // Dashboard 商户仪表盘
 func Dashboard(c *gin.Context) {
 	merchantID := middleware.GetUserID(c)

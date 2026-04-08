@@ -1,4 +1,4 @@
-// internal/payment/plugin_config.go
+// internal/plugin/plugin_config.go
 package payment
 
 // PluginConfigField 配置字段定义

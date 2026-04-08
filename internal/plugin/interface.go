@@ -1,4 +1,4 @@
-// internal/payment/adapter.go
+// internal/plugin/interface.go
 package payment
 
 import (

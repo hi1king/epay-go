@@ -11,7 +11,6 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-
 // ListSettlements 结算列表
 func ListSettlements(c *gin.Context) {
 	merchantID := middleware.GetUserID(c)

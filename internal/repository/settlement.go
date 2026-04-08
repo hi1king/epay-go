@@ -2,7 +2,6 @@
 package repository
 
 import (
-	"github.com/example/epay-go/internal/database"
 	"github.com/example/epay-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -12,7 +11,7 @@ type SettlementRepository struct {
 }
 
 func NewSettlementRepository() *SettlementRepository {
-	return &SettlementRepository{db: database.Get()}
+	return &SettlementRepository{db: GetDB()}
 }
 
 // Create 创建结算记录

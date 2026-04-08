@@ -221,16 +221,16 @@ func LegacyAPI(c *gin.Context) {
 		list := make([]gin.H, 0, len(settlements))
 		for _, item := range settlements {
 			list = append(list, gin.H{
-				"settle_no":      item.SettleNo,
-				"money":          item.Amount.StringFixed(2),
-				"fee":            item.Fee.StringFixed(2),
-				"actual_money":   item.ActualAmount.StringFixed(2),
-				"account_type":   item.AccountType,
-				"account_no":     item.AccountNo,
-				"account_name":   item.AccountName,
-				"status":         item.Status,
-				"remark":         item.Remark,
-				"created_at":     item.CreatedAt.Format("2006-01-02 15:04:05"),
+				"settle_no":    item.SettleNo,
+				"money":        item.Amount.StringFixed(2),
+				"fee":          item.Fee.StringFixed(2),
+				"actual_money": item.ActualAmount.StringFixed(2),
+				"account_type": item.AccountType,
+				"account_no":   item.AccountNo,
+				"account_name": item.AccountName,
+				"status":       item.Status,
+				"remark":       item.Remark,
+				"created_at":   item.CreatedAt.Format("2006-01-02 15:04:05"),
 			})
 		}
 
@@ -337,17 +337,17 @@ func createLegacyOrder(c *gin.Context, req *LegacyCreateOrderRequest) (*service.
 	}
 
 	orderResp, err := orderService.Create(context.Background(), &service.CreateOrderRequest{
-		MerchantID:       merchant.ID,
-		OutTradeNo:       req.OutTradeNo,
-		Amount:           amount,
-		Name:             req.Name,
-		PayType:          routing.PayType,
-		NotifyURL:        req.NotifyURL,
+		MerchantID:        merchant.ID,
+		OutTradeNo:        req.OutTradeNo,
+		Amount:            amount,
+		Name:              req.Name,
+		PayType:           routing.PayType,
+		NotifyURL:         req.NotifyURL,
 		MerchantNotifyURL: req.NotifyURL,
-		PlatformBaseURL:  getPaymentBaseURL(c),
-		ReturnURL:        req.ReturnURL,
-		ClientIP:         utils.GetClientIP(c),
-		PayMethod:        routing.PayMethod,
+		PlatformBaseURL:   getPaymentBaseURL(c),
+		ReturnURL:         req.ReturnURL,
+		ClientIP:          utils.GetClientIP(c),
+		PayMethod:         routing.PayMethod,
 	})
 	if err != nil {
 		return nil, nil, err
