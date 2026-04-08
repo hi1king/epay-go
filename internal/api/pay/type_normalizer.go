@@ -33,6 +33,14 @@ func resolvePayRouting(rawType, rawPayMethod string) (*resolvedPayRouting, error
 		return buildResolvedPayRouting("stripe", "h5", normalizedMethod)
 	case "stripe_web":
 		return buildResolvedPayRouting("stripe", "web", normalizedMethod)
+	case "stripe_alipay":
+		return buildResolvedPayRouting("stripe", "alipay", normalizedMethod)
+	case "stripe_wechat", "stripe_wxpay", "stripe_wechat_pay":
+		return buildResolvedPayRouting("stripe", "wechat_pay", normalizedMethod)
+	case "stripe_paypal":
+		return buildResolvedPayRouting("stripe", "paypal", normalizedMethod)
+	case "stripe_bank":
+		return buildResolvedPayRouting("stripe", "bank", normalizedMethod)
 	case "native", "scan", "qrcode", "h5", "wap", "jsapi", "web", "pc", "precreate":
 		if normalizedMethod == "" {
 			return nil, fmt.Errorf("type=%s 无法唯一确定支付渠道，请改为传 wxpay/alipay/stripe，或使用 wx_native、alipay_scan、stripe_checkout 这类明确值", rawType)
@@ -94,6 +102,14 @@ func normalizePayMethod(value string) string {
 		return "web"
 	case "checkout", "card", "hosted_checkout":
 		return "checkout"
+	case "paypal":
+		return "paypal"
+	case "bank":
+		return "bank"
+	case "alipay":
+		return "alipay"
+	case "wechat_pay", "wechat", "wxpay":
+		return "wechat_pay"
 	case "jsapi":
 		return "jsapi"
 	default:
@@ -134,7 +150,7 @@ func isAlipayMethod(payMethod string) bool {
 
 func isStripeMethod(payMethod string) bool {
 	switch payMethod {
-	case "checkout":
+	case "checkout", "paypal", "bank", "alipay", "wechat_pay":
 		return true
 	default:
 		return false

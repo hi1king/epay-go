@@ -29,6 +29,7 @@ type PaymentAdapter interface {
 
 // CreateOrderRequest 统一下单请求
 type CreateOrderRequest struct {
+	PayType   string            `json:"pay_type"`   // 支付类型: alipay/wxpay/paypal/bank/stripe
 	TradeNo   string            `json:"trade_no"`   // 系统订单号
 	Amount    decimal.Decimal   `json:"amount"`     // 金额（元）
 	Subject   string            `json:"subject"`    // 商品名称

@@ -14,6 +14,10 @@ const ALL_OPTIONS: PaymentOption[] = [
   { label: 'ALIPAY_SCAN', value: 'ALIPAY_SCAN', payType: 'alipay', payMethod: 'scan', mode: 'qrcode', provider: 'alipay' },
   { label: 'ALIPAY_H5', value: 'ALIPAY_H5', payType: 'alipay', payMethod: 'h5', mode: 'redirect', provider: 'alipay' },
   { label: 'ALIPAY_WEB', value: 'ALIPAY_WEB', payType: 'alipay', payMethod: 'web', mode: 'redirect', provider: 'alipay' },
+  { label: 'STRIPE_ALIPAY', value: 'STRIPE_ALIPAY', payType: 'stripe', payMethod: 'alipay', mode: 'redirect', provider: 'stripe' },
+  { label: 'STRIPE_WXPAY', value: 'STRIPE_WXPAY', payType: 'stripe', payMethod: 'wechat_pay', mode: 'qrcode', provider: 'stripe' },
+  { label: 'STRIPE_PAYPAL', value: 'STRIPE_PAYPAL', payType: 'stripe', payMethod: 'paypal', mode: 'redirect', provider: 'stripe' },
+  { label: 'STRIPE_BANK', value: 'STRIPE_BANK', payType: 'stripe', payMethod: 'bank', mode: 'redirect', provider: 'stripe' },
   { label: 'STRIPE_CHECKOUT', value: 'STRIPE_CHECKOUT', payType: 'stripe', payMethod: 'checkout', mode: 'redirect', provider: 'stripe' },
 ]
 

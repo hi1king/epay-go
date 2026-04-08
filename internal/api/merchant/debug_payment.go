@@ -16,7 +16,7 @@ import (
 type TestPaymentRequest struct {
 	Amount    string `json:"amount" binding:"required"`
 	PayType   string `json:"pay_type" binding:"required"` // alipay, wxpay, stripe
-	PayMethod string `json:"pay_method" binding:"omitempty,oneof=scan native h5 jsapi web checkout card"`
+	PayMethod string `json:"pay_method" binding:"omitempty,oneof=scan native h5 jsapi web checkout card paypal bank alipay wechat_pay"`
 }
 
 // TestPayment 商户侧测试支付（创建一笔当前商户的测试订单）

@@ -13,6 +13,10 @@ func TestResolvePayRoutingStripe(t *testing.T) {
 		{rawType: "stripe_checkout", wantType: "stripe", wantMethod: "checkout"},
 		{rawType: "stripe", rawPayMethod: "web", wantType: "stripe", wantMethod: "web"},
 		{rawPayMethod: "checkout", wantType: "stripe", wantMethod: "checkout"},
+		{rawType: "stripe_alipay", wantType: "stripe", wantMethod: "alipay"},
+		{rawType: "stripe_wechat", wantType: "stripe", wantMethod: "wechat_pay"},
+		{rawType: "stripe_paypal", wantType: "stripe", wantMethod: "paypal"},
+		{rawPayMethod: "bank", wantType: "stripe", wantMethod: "bank"},
 	}
 
 	for _, tt := range tests {

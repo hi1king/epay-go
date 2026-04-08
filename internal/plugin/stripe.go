@@ -20,10 +20,18 @@ import (
 )
 
 const (
-	stripeAPIBaseURL        = "https://api.stripe.com/v1"
-	stripeWebhookTolerance  = 5 * time.Minute
-	defaultStripeCurrency   = "usd"
-	defaultStripePayMethods = "card"
+	stripeAPIBaseURL            = "https://api.stripe.com/v1"
+	stripeWebhookTolerance      = 5 * time.Minute
+	defaultStripeCurrency       = "usd"
+	defaultStripePayMethods     = "card"
+	stripeDirectMethodAlipay    = "alipay"
+	stripeDirectMethodWechatPay = "wechat_pay"
+	stripeCheckoutMethodCard    = "card"
+	stripeCheckoutMethodPaypal  = "paypal"
+	stripeCheckoutMethodLink    = "link"
+	stripeMetadataTradeNo       = "trade_no"
+	stripeMetadataSubject       = "subject"
+	stripeMetadataNotifyURL     = "notify_url"
 )
 
 var stripeZeroDecimalCurrencies = map[string]struct{}{
@@ -40,13 +48,15 @@ type StripeConfig struct {
 	SuccessURL         string `json:"success_url"`
 	CancelURL          string `json:"cancel_url"`
 	Currency           string `json:"currency"`
+	CurrencyRate       string `json:"currency_rate"`
 	PaymentMethodTypes string `json:"payment_method_types"`
 }
 
 // StripeAdapter Stripe 支付适配器
 type StripeAdapter struct {
-	client *http.Client
-	config *StripeConfig
+	client       *http.Client
+	config       *StripeConfig
+	currencyRate decimal.Decimal
 }
 
 type stripeCheckoutSession struct {
@@ -60,6 +70,8 @@ type stripeCheckoutSession struct {
 	Customer          string            `json:"customer"`
 	Metadata          map[string]string `json:"metadata"`
 	CustomerDetails   *stripeCustomer   `json:"customer_details"`
+	SuccessURL        string            `json:"success_url"`
+	CancelURL         string            `json:"cancel_url"`
 }
 
 type stripeCustomer struct {
@@ -69,15 +81,50 @@ type stripeCustomer struct {
 }
 
 type stripePaymentIntent struct {
-	ID             string            `json:"id"`
-	Status         string            `json:"status"`
-	Amount         int64             `json:"amount"`
-	AmountReceived int64             `json:"amount_received"`
-	Currency       string            `json:"currency"`
-	Created        int64             `json:"created"`
-	Customer       string            `json:"customer"`
-	ReceiptEmail   string            `json:"receipt_email"`
-	Metadata       map[string]string `json:"metadata"`
+	ID                  string                     `json:"id"`
+	Status              string                     `json:"status"`
+	Amount              int64                      `json:"amount"`
+	AmountReceived      int64                      `json:"amount_received"`
+	Currency            string                     `json:"currency"`
+	Created             int64                      `json:"created"`
+	Customer            string                     `json:"customer"`
+	ReceiptEmail        string                     `json:"receipt_email"`
+	Metadata            map[string]string          `json:"metadata"`
+	LastPaymentError    *stripePaymentIntentError  `json:"last_payment_error"`
+	NextAction          *stripePaymentIntentAction `json:"next_action"`
+	PaymentMethod       string                     `json:"payment_method"`
+	PaymentMethodTypes  []string                   `json:"payment_method_types"`
+	ClientSecret        string                     `json:"client_secret"`
+	LatestCharge        string                     `json:"latest_charge"`
+	AmountCapturable    int64                      `json:"amount_capturable"`
+	AmountDetails       map[string]json.RawMessage `json:"amount_details"`
+	StatementDescriptor string                     `json:"statement_descriptor"`
+	Description         string                     `json:"description"`
+}
+
+type stripePaymentIntentError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Type    string `json:"type"`
+}
+
+type stripePaymentIntentAction struct {
+	Type                 string                          `json:"type"`
+	RedirectToURL        *stripeRedirectToURLAction      `json:"redirect_to_url"`
+	AlipayHandleRedirect *stripeRedirectToURLAction      `json:"alipay_handle_redirect"`
+	WechatPayDisplayQR   *stripeWechatPayDisplayQRAction `json:"wechat_pay_display_qr_code"`
+	UseStripeSDK         map[string]json.RawMessage      `json:"use_stripe_sdk"`
+}
+
+type stripeRedirectToURLAction struct {
+	URL       string `json:"url"`
+	ReturnURL string `json:"return_url"`
+}
+
+type stripeWechatPayDisplayQRAction struct {
+	Data                  string `json:"data"`
+	ImageDataURL          string `json:"image_data_url"`
+	HostedInstructionsURL string `json:"hosted_instructions_url"`
 }
 
 type stripePaymentIntentSearchResponse struct {
@@ -88,6 +135,8 @@ type stripeRefund struct {
 	ID            string `json:"id"`
 	Status        string `json:"status"`
 	FailureReason string `json:"failure_reason"`
+	PaymentIntent string `json:"payment_intent"`
+	Amount        int64  `json:"amount"`
 }
 
 type stripeWebhookEvent struct {
@@ -116,12 +165,16 @@ func NewStripeAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
 				m["secret_key"] = v
 			} else if v, ok2 := m["secretKey"]; ok2 {
 				m["secret_key"] = v
+			} else if v, ok2 := m["appid"]; ok2 {
+				m["secret_key"] = v
 			}
 		}
 		if _, ok := m["webhook_secret"]; !ok {
 			if v, ok2 := m["webhookSigningSecret"]; ok2 {
 				m["webhook_secret"] = v
 			} else if v, ok2 := m["signing_secret"]; ok2 {
+				m["webhook_secret"] = v
+			} else if v, ok2 := m["appkey"]; ok2 {
 				m["webhook_secret"] = v
 			}
 		}
@@ -140,6 +193,14 @@ func NewStripeAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
 				m["payment_method_types"] = v
 			}
 		}
+		if _, ok := m["currency"]; !ok {
+			if v, ok2 := m["currency_code"]; ok2 {
+				m["currency"] = v
+			}
+		}
+		if _, ok := m["currency_rate"]; !ok {
+			m["currency_rate"] = "1"
+		}
 		b, _ := json.Marshal(m)
 		configJSON = b
 	}
@@ -150,6 +211,7 @@ func NewStripeAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
 	}
 
 	cfg.SecretKey = strings.TrimSpace(cfg.SecretKey)
+	cfg.PublishableKey = strings.TrimSpace(cfg.PublishableKey)
 	cfg.WebhookSecret = strings.TrimSpace(cfg.WebhookSecret)
 	cfg.SuccessURL = strings.TrimSpace(cfg.SuccessURL)
 	cfg.CancelURL = strings.TrimSpace(cfg.CancelURL)
@@ -162,72 +224,40 @@ func NewStripeAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
 		cfg.PaymentMethodTypes = defaultStripePayMethods
 	}
 
+	rate := decimal.NewFromInt(1)
+	if strings.TrimSpace(cfg.CurrencyRate) != "" {
+		parsed, err := decimal.NewFromString(strings.TrimSpace(cfg.CurrencyRate))
+		if err != nil {
+			return nil, errors.New("stripe currency_rate is invalid")
+		}
+		if parsed.LessThanOrEqual(decimal.Zero) {
+			return nil, errors.New("stripe currency_rate must be greater than zero")
+		}
+		rate = parsed
+	}
+
 	if cfg.SecretKey == "" {
 		return nil, errors.New("stripe secret_key is required")
 	}
 
 	return &StripeAdapter{
-		client: &http.Client{Timeout: 20 * time.Second},
-		config: &cfg,
+		client:       &http.Client{Timeout: 30 * time.Second},
+		config:       &cfg,
+		currencyRate: rate,
 	}, nil
 }
 
 // CreateOrder 创建支付订单
 func (s *StripeAdapter) CreateOrder(ctx context.Context, req *CreateOrderRequest) (*CreateOrderResponse, error) {
-	payMethod := normalizeStripePayMethod(req.PayMethod)
-	switch payMethod {
-	case "", "checkout", "web", "h5":
+	route := resolveStripeRoute(req.PayType, req.PayMethod)
+	switch route.Kind {
+	case stripeRouteKindDirect:
+		return s.createDirectPaymentIntent(ctx, req, route)
+	case stripeRouteKindCheckout:
+		return s.createCheckoutSession(ctx, req, route)
 	default:
-		return nil, errors.New("unsupported pay method: " + req.PayMethod)
+		return nil, errors.New("unsupported stripe route")
 	}
-
-	successURL, cancelURL, err := s.resolveCheckoutURLs(req)
-	if err != nil {
-		return nil, err
-	}
-
-	unitAmount, err := stripeAmountToMinor(req.Amount, s.config.Currency)
-	if err != nil {
-		return nil, err
-	}
-
-	form := url.Values{}
-	form.Set("mode", "payment")
-	form.Set("success_url", successURL)
-	form.Set("cancel_url", cancelURL)
-	form.Set("client_reference_id", req.TradeNo)
-	form.Set("metadata[trade_no]", req.TradeNo)
-	form.Set("metadata[subject]", req.Subject)
-	form.Set("payment_intent_data[metadata][trade_no]", req.TradeNo)
-	form.Set("payment_intent_data[metadata][subject]", req.Subject)
-	form.Set("line_items[0][price_data][currency]", s.config.Currency)
-	form.Set("line_items[0][price_data][product_data][name]", req.Subject)
-	form.Set("line_items[0][price_data][unit_amount]", strconv.FormatInt(unitAmount, 10))
-	form.Set("line_items[0][quantity]", "1")
-
-	if req.NotifyURL != "" {
-		form.Set("payment_intent_data[metadata][notify_url]", req.NotifyURL)
-	}
-	if customerEmail := strings.TrimSpace(req.Extra["customer_email"]); customerEmail != "" {
-		form.Set("customer_email", customerEmail)
-	}
-
-	for i, method := range splitCommaValues(s.config.PaymentMethodTypes) {
-		form.Set(fmt.Sprintf("payment_method_types[%d]", i), method)
-	}
-
-	var session stripeCheckoutSession
-	if err := s.doRequest(ctx, http.MethodPost, "/checkout/sessions", nil, form, &session); err != nil {
-		return nil, err
-	}
-	if session.URL == "" {
-		return nil, errors.New("stripe checkout session missing redirect url")
-	}
-
-	return &CreateOrderResponse{
-		PayType: "redirect",
-		PayURL:  session.URL,
-	}, nil
 }
 
 // QueryOrder 查询订单
@@ -250,7 +280,7 @@ func (s *StripeAdapter) QueryOrder(ctx context.Context, tradeNo string) (*QueryO
 	return &QueryOrderResponse{
 		TradeNo:    tradeNo,
 		ApiTradeNo: intent.ID,
-		Amount:     stripeMinorToAmount(amountMinor, intent.Currency),
+		Amount:     s.fromStripeAmount(amountMinor, intent.Currency),
 		Status:     mapStripeIntentStatus(intent.Status),
 		PaidAt:     paidAt,
 	}, nil
@@ -263,7 +293,7 @@ func (s *StripeAdapter) Refund(ctx context.Context, req *RefundRequest) (*Refund
 		return nil, err
 	}
 
-	amountMinor, err := stripeAmountToMinor(req.Amount, s.config.Currency)
+	amountMinor, err := s.toStripeAmount(req.Amount, intent.Currency)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +357,7 @@ func (s *StripeAdapter) ParseNotify(ctx context.Context, r *http.Request) (*Noti
 			return nil, err
 		}
 
-		tradeNo := firstNonEmpty(session.ClientReferenceID, session.Metadata["trade_no"])
+		tradeNo := firstNonEmpty(session.ClientReferenceID, session.Metadata[stripeMetadataTradeNo])
 		if tradeNo == "" {
 			return nil, errors.New("stripe checkout session missing trade_no")
 		}
@@ -345,7 +375,7 @@ func (s *StripeAdapter) ParseNotify(ctx context.Context, r *http.Request) (*Noti
 		return &NotifyResult{
 			TradeNo:    tradeNo,
 			ApiTradeNo: firstNonEmpty(session.PaymentIntent, session.ID),
-			Amount:     stripeMinorToAmount(session.AmountTotal, session.Currency),
+			Amount:     s.fromStripeAmount(session.AmountTotal, session.Currency),
 			Buyer:      buyer,
 			Status:     status,
 		}, nil
@@ -356,7 +386,7 @@ func (s *StripeAdapter) ParseNotify(ctx context.Context, r *http.Request) (*Noti
 			return nil, err
 		}
 
-		tradeNo := intent.Metadata["trade_no"]
+		tradeNo := intent.Metadata[stripeMetadataTradeNo]
 		if tradeNo == "" {
 			return nil, errors.New("stripe payment intent missing trade_no")
 		}
@@ -374,7 +404,7 @@ func (s *StripeAdapter) ParseNotify(ctx context.Context, r *http.Request) (*Noti
 		return &NotifyResult{
 			TradeNo:    tradeNo,
 			ApiTradeNo: intent.ID,
-			Amount:     stripeMinorToAmount(amountMinor, intent.Currency),
+			Amount:     s.fromStripeAmount(amountMinor, intent.Currency),
 			Buyer:      firstNonEmpty(intent.ReceiptEmail, intent.Customer),
 			Status:     status,
 		}, nil
@@ -387,6 +417,210 @@ func (s *StripeAdapter) ParseNotify(ctx context.Context, r *http.Request) (*Noti
 // NotifySuccess 返回回调成功响应
 func (s *StripeAdapter) NotifySuccess() string {
 	return "ok"
+}
+
+type stripeRouteKind string
+
+const (
+	stripeRouteKindDirect   stripeRouteKind = "direct"
+	stripeRouteKindCheckout stripeRouteKind = "checkout"
+)
+
+type stripeRoute struct {
+	Kind                stripeRouteKind
+	PaymentMethod       string
+	CheckoutMethodTypes []string
+	ResponsePayType     string
+}
+
+func resolveStripeRoute(payType, payMethod string) stripeRoute {
+	normalizedType := strings.ToLower(strings.TrimSpace(payType))
+	normalizedMethod := normalizeStripePayMethod(payMethod)
+
+	switch normalizedType {
+	case "alipay":
+		return stripeRoute{Kind: stripeRouteKindDirect, PaymentMethod: stripeDirectMethodAlipay, ResponsePayType: "redirect"}
+	case "wxpay", "wechat":
+		return stripeRoute{Kind: stripeRouteKindDirect, PaymentMethod: stripeDirectMethodWechatPay, ResponsePayType: stripeWechatRoutePayType(normalizedMethod)}
+	case "paypal":
+		return stripeRoute{Kind: stripeRouteKindCheckout, CheckoutMethodTypes: []string{stripeCheckoutMethodPaypal}, ResponsePayType: "redirect"}
+	case "bank":
+		return stripeRoute{Kind: stripeRouteKindCheckout, CheckoutMethodTypes: []string{stripeCheckoutMethodCard}, ResponsePayType: "redirect"}
+	case "stripe":
+		if normalizedMethod == stripeDirectMethodAlipay {
+			return stripeRoute{Kind: stripeRouteKindDirect, PaymentMethod: stripeDirectMethodAlipay, ResponsePayType: "redirect"}
+		}
+		if normalizedMethod == stripeDirectMethodWechatPay {
+			return stripeRoute{Kind: stripeRouteKindDirect, PaymentMethod: stripeDirectMethodWechatPay, ResponsePayType: "qrcode"}
+		}
+		return stripeRoute{Kind: stripeRouteKindCheckout, CheckoutMethodTypes: checkoutMethodTypesFromConfig(""), ResponsePayType: "redirect"}
+	default:
+		if normalizedMethod == stripeDirectMethodAlipay {
+			return stripeRoute{Kind: stripeRouteKindDirect, PaymentMethod: stripeDirectMethodAlipay, ResponsePayType: "redirect"}
+		}
+		if normalizedMethod == stripeDirectMethodWechatPay {
+			return stripeRoute{Kind: stripeRouteKindDirect, PaymentMethod: stripeDirectMethodWechatPay, ResponsePayType: "qrcode"}
+		}
+		if normalizedMethod == stripeCheckoutMethodPaypal {
+			return stripeRoute{Kind: stripeRouteKindCheckout, CheckoutMethodTypes: []string{stripeCheckoutMethodPaypal}, ResponsePayType: "redirect"}
+		}
+		return stripeRoute{Kind: stripeRouteKindCheckout, CheckoutMethodTypes: checkoutMethodTypesFromConfig(normalizedMethod), ResponsePayType: "redirect"}
+	}
+}
+
+func stripeWechatRoutePayType(payMethod string) string {
+	switch payMethod {
+	case "h5", "web":
+		return "redirect"
+	default:
+		return "qrcode"
+	}
+}
+
+func (s *StripeAdapter) createCheckoutSession(ctx context.Context, req *CreateOrderRequest, route stripeRoute) (*CreateOrderResponse, error) {
+	successURL, cancelURL, err := s.resolveCheckoutURLs(req)
+	if err != nil {
+		return nil, err
+	}
+
+	unitAmount, err := s.toStripeAmount(req.Amount, s.config.Currency)
+	if err != nil {
+		return nil, err
+	}
+
+	form := url.Values{}
+	form.Set("mode", "payment")
+	form.Set("success_url", successURL)
+	form.Set("cancel_url", cancelURL)
+	form.Set("client_reference_id", req.TradeNo)
+	form.Set("metadata[trade_no]", req.TradeNo)
+	form.Set("metadata[subject]", req.Subject)
+	form.Set("payment_intent_data[metadata][trade_no]", req.TradeNo)
+	form.Set("payment_intent_data[metadata][subject]", req.Subject)
+	form.Set("line_items[0][price_data][currency]", s.config.Currency)
+	form.Set("line_items[0][price_data][product_data][name]", req.Subject)
+	form.Set("line_items[0][price_data][unit_amount]", strconv.FormatInt(unitAmount, 10))
+	form.Set("line_items[0][quantity]", "1")
+
+	if req.NotifyURL != "" {
+		form.Set("payment_intent_data[metadata][notify_url]", req.NotifyURL)
+	}
+	if customerEmail := strings.TrimSpace(req.Extra["customer_email"]); customerEmail != "" {
+		form.Set("customer_email", customerEmail)
+	}
+
+	methods := route.CheckoutMethodTypes
+	if len(methods) == 0 {
+		methods = checkoutMethodTypesFromConfig(s.config.PaymentMethodTypes)
+	}
+	for i, method := range methods {
+		form.Set(fmt.Sprintf("payment_method_types[%d]", i), method)
+	}
+
+	var session stripeCheckoutSession
+	if err := s.doRequest(ctx, http.MethodPost, "/checkout/sessions", nil, form, &session); err != nil {
+		return nil, err
+	}
+	if session.URL == "" {
+		return nil, errors.New("stripe checkout session missing redirect url")
+	}
+
+	return &CreateOrderResponse{
+		PayType: "redirect",
+		PayURL:  session.URL,
+	}, nil
+}
+
+func (s *StripeAdapter) createDirectPaymentIntent(ctx context.Context, req *CreateOrderRequest, route stripeRoute) (*CreateOrderResponse, error) {
+	amountMinor, err := s.toStripeAmount(req.Amount, s.config.Currency)
+	if err != nil {
+		return nil, err
+	}
+
+	returnURL := req.ReturnURL
+	if returnURL == "" {
+		returnURL = s.config.SuccessURL
+	}
+
+	form := url.Values{}
+	form.Set("amount", strconv.FormatInt(amountMinor, 10))
+	form.Set("currency", s.config.Currency)
+	form.Set("confirm", "true")
+	form.Set("payment_method_types[0]", route.PaymentMethod)
+	form.Set("description", req.Subject)
+	form.Set("metadata[trade_no]", req.TradeNo)
+	form.Set("metadata[subject]", req.Subject)
+	if req.NotifyURL != "" {
+		form.Set("metadata[notify_url]", req.NotifyURL)
+	}
+	if returnURL != "" {
+		form.Set("return_url", returnURL)
+	}
+
+	if route.PaymentMethod == stripeDirectMethodWechatPay {
+		form.Set("payment_method_options[wechat_pay][client]", stripeWechatClient(req.PayMethod))
+	}
+
+	var intent stripePaymentIntent
+	if err := s.doRequest(ctx, http.MethodPost, "/payment_intents", nil, form, &intent); err != nil {
+		return nil, err
+	}
+
+	if intent.Status == "succeeded" {
+		return &CreateOrderResponse{PayType: "redirect", PayURL: returnURL}, nil
+	}
+
+	payURL, payType, err := extractStripeDirectPayTarget(intent, req.PayMethod, returnURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CreateOrderResponse{
+		PayType: payType,
+		PayURL:  payURL,
+	}, nil
+}
+
+func extractStripeDirectPayTarget(intent stripePaymentIntent, payMethod, fallbackReturnURL string) (string, string, error) {
+	if intent.NextAction == nil {
+		if intent.ClientSecret != "" {
+			return intent.ClientSecret, "redirect", nil
+		}
+		return "", "", errors.New("stripe payment intent missing next_action")
+	}
+
+	if intent.NextAction.AlipayHandleRedirect != nil && intent.NextAction.AlipayHandleRedirect.URL != "" {
+		return intent.NextAction.AlipayHandleRedirect.URL, "redirect", nil
+	}
+	if intent.NextAction.RedirectToURL != nil && intent.NextAction.RedirectToURL.URL != "" {
+		return intent.NextAction.RedirectToURL.URL, "redirect", nil
+	}
+	if intent.NextAction.WechatPayDisplayQR != nil {
+		if strings.TrimSpace(payMethod) == "h5" || strings.TrimSpace(payMethod) == "web" {
+			if intent.NextAction.WechatPayDisplayQR.HostedInstructionsURL != "" {
+				return intent.NextAction.WechatPayDisplayQR.HostedInstructionsURL, "redirect", nil
+			}
+		}
+		if intent.NextAction.WechatPayDisplayQR.ImageDataURL != "" {
+			return intent.NextAction.WechatPayDisplayQR.ImageDataURL, "qrcode", nil
+		}
+		if intent.NextAction.WechatPayDisplayQR.Data != "" {
+			return intent.NextAction.WechatPayDisplayQR.Data, "qrcode", nil
+		}
+	}
+	if fallbackReturnURL != "" {
+		return fallbackReturnURL, "redirect", nil
+	}
+	return "", "", errors.New("stripe payment intent missing payable target")
+}
+
+func stripeWechatClient(payMethod string) string {
+	switch strings.ToLower(strings.TrimSpace(payMethod)) {
+	case "h5", "web":
+		return "web"
+	default:
+		return "web"
+	}
 }
 
 func (s *StripeAdapter) resolveCheckoutURLs(req *CreateOrderRequest) (string, string, error) {
@@ -462,7 +696,14 @@ func (s *StripeAdapter) doRequest(ctx context.Context, method, path string, quer
 	if resp.StatusCode >= 400 {
 		var apiErr stripeAPIErrorResponse
 		if json.Unmarshal(bodyBytes, &apiErr) == nil && apiErr.Error != nil && apiErr.Error.Message != "" {
-			return fmt.Errorf("stripe api error: %s", apiErr.Error.Message)
+			message := apiErr.Error.Message
+			if apiErr.Error.Param != "" {
+				message += " (param: " + apiErr.Error.Param + ")"
+			}
+			return fmt.Errorf("stripe api error: %s", message)
+		}
+		if len(bodyBytes) > 0 {
+			return fmt.Errorf("stripe api error: status=%d body=%s", resp.StatusCode, strings.TrimSpace(string(bodyBytes)))
 		}
 		return fmt.Errorf("stripe api error: status=%d", resp.StatusCode)
 	}
@@ -471,7 +712,10 @@ func (s *StripeAdapter) doRequest(ctx context.Context, method, path string, quer
 		return nil
 	}
 
-	return json.Unmarshal(bodyBytes, out)
+	if err := json.Unmarshal(bodyBytes, out); err != nil {
+		return fmt.Errorf("stripe api response decode error: %w", err)
+	}
+	return nil
 }
 
 func normalizeStripeCurrency(currency string) string {
@@ -486,12 +730,20 @@ func normalizeStripePayMethod(payMethod string) string {
 		return "web"
 	case "h5":
 		return "h5"
+	case "paypal":
+		return "paypal"
+	case "bank":
+		return "bank"
+	case "alipay":
+		return stripeDirectMethodAlipay
+	case "wxpay", "wechat", "wechat_pay", "native":
+		return stripeDirectMethodWechatPay
 	default:
 		return strings.ToLower(strings.TrimSpace(payMethod))
 	}
 }
 
-func splitCommaValues(raw string) []string {
+func checkoutMethodTypesFromConfig(raw string) []string {
 	if strings.TrimSpace(raw) == "" {
 		return []string{defaultStripePayMethods}
 	}
@@ -501,6 +753,14 @@ func splitCommaValues(raw string) []string {
 	for _, item := range strings.Split(raw, ",") {
 		value := strings.ToLower(strings.TrimSpace(item))
 		if value == "" {
+			continue
+		}
+		switch value {
+		case "bank":
+			value = stripeCheckoutMethodCard
+		case "checkout", "hosted_checkout":
+			value = stripeCheckoutMethodCard
+		case stripeDirectMethodAlipay, stripeDirectMethodWechatPay:
 			continue
 		}
 		if _, ok := seen[value]; ok {
@@ -541,12 +801,30 @@ func stripeMinorToAmount(amount int64, currency string) decimal.Decimal {
 	return value.Div(decimal.NewFromInt(100))
 }
 
+func (s *StripeAdapter) toStripeAmount(amount decimal.Decimal, currency string) (int64, error) {
+	converted := amount
+	if !s.currencyRate.Equal(decimal.NewFromInt(1)) {
+		converted = amount.Mul(s.currencyRate)
+	}
+	return stripeAmountToMinor(converted, currency)
+}
+
+func (s *StripeAdapter) fromStripeAmount(amount int64, currency string) decimal.Decimal {
+	converted := stripeMinorToAmount(amount, currency)
+	if s.currencyRate.Equal(decimal.NewFromInt(1)) {
+		return converted
+	}
+	return converted.Div(s.currencyRate).Round(2)
+}
+
 func mapStripeIntentStatus(status string) string {
 	switch status {
 	case "succeeded":
 		return "paid"
 	case "canceled":
 		return "closed"
+	case "requires_payment_method", "requires_action", "requires_confirmation", "processing", "requires_capture":
+		return "pending"
 	default:
 		return "pending"
 	}

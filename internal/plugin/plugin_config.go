@@ -182,7 +182,7 @@ func GetWechatConfig() PluginConfig {
 func GetStripeConfig() PluginConfig {
 	return PluginConfig{
 		Name:     "stripe",
-		ShowName: "Stripe Checkout",
+		ShowName: "Stripe",
 		Author:   "Stripe",
 		Link:     "https://stripe.com",
 		Inputs: []PluginConfigField{
@@ -192,7 +192,7 @@ func GetStripeConfig() PluginConfig {
 				Type:        "input",
 				Required:    true,
 				Placeholder: "sk_live_xxx 或 sk_test_xxx",
-				Note:        "服务端调用 Stripe API 使用的密钥",
+				Note:        "也兼容旧配置字段 api_key / appid",
 			},
 			{
 				Key:         "webhook_secret",
@@ -200,15 +200,23 @@ func GetStripeConfig() PluginConfig {
 				Type:        "input",
 				Required:    true,
 				Placeholder: "whsec_xxx",
-				Note:        "用于校验 Stripe Webhook 签名",
+				Note:        "也兼容旧配置字段 appkey / signing_secret / webhookSigningSecret",
+			},
+			{
+				Key:         "publishable_key",
+				Name:        "Publishable Key",
+				Type:        "input",
+				Required:    false,
+				Placeholder: "pk_live_xxx 或 pk_test_xxx",
+				Note:        "前端直连 Stripe.js 时使用；当前后端不强依赖",
 			},
 			{
 				Key:         "success_url",
 				Name:        "默认成功跳转地址",
 				Type:        "input",
-				Required:    true,
+				Required:    false,
 				Placeholder: "https://merchant.example.com/pay/success",
-				Note:        "当下单请求未传 return_url 时，Checkout 成功后跳转到这里",
+				Note:        "Checkout 模式未传 return_url 时使用；直连模式不依赖该字段",
 			},
 			{
 				Key:         "cancel_url",
@@ -221,10 +229,27 @@ func GetStripeConfig() PluginConfig {
 			{
 				Key:         "currency",
 				Name:        "结算币种",
-				Type:        "input",
+				Type:        "select",
 				Required:    true,
 				Placeholder: "usd",
-				Note:        "Stripe 使用的小写 ISO 货币代码，如 usd、eur、jpy",
+				Options: map[string]string{
+					"cny": "人民币 (CNY)",
+					"hkd": "港币 (HKD)",
+					"usd": "美元 (USD)",
+					"eur": "欧元 (EUR)",
+					"gbp": "英镑 (GBP)",
+					"jpy": "日元 (JPY)",
+					"twd": "新台币 (TWD)",
+				},
+				Note: "Stripe 使用的小写 ISO 货币代码；兼容旧字段 currency_code",
+			},
+			{
+				Key:         "currency_rate",
+				Name:        "汇率系数",
+				Type:        "input",
+				Required:    false,
+				Placeholder: "1 或 0.137",
+				Note:        "兼容 epy_stripe 的货币换算逻辑；默认 1，按 amount * rate 后再换算到最小货币单位",
 			},
 			{
 				Key:         "payment_method_types",
@@ -236,10 +261,14 @@ func GetStripeConfig() PluginConfig {
 			},
 		},
 		PayTypes: []PayTypeOption{
+			{Code: "alipay", Name: "支付宝（直连 PaymentIntent）"},
+			{Code: "wxpay", Name: "微信支付（直连 PaymentIntent）"},
+			{Code: "paypal", Name: "PayPal（Checkout）"},
+			{Code: "bank", Name: "银行卡（Checkout/Card）"},
 			{Code: "checkout", Name: "Checkout 跳转支付"},
 			{Code: "web", Name: "网页支付（映射到 Checkout）"},
 			{Code: "h5", Name: "H5 支付（映射到 Checkout）"},
 		},
-		Note: "当前实现基于 Stripe Checkout Session。Webhook 地址请配置为 /api/pay/notify/stripe；测试支付时若未传 return_url，将使用这里配置的 success_url / cancel_url。",
+		Note: "参考 epy_stripe：支付宝/微信优先走直连 PaymentIntent，PayPal/银行卡走 Checkout。Webhook 地址配置为 /api/pay/notify/stripe。",
 	}
 }

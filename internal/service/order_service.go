@@ -117,6 +117,7 @@ func (s *OrderService) Create(ctx context.Context, req *CreateOrderRequest) (*Cr
 	}
 
 	payReq := &payment.CreateOrderRequest{
+		PayType:   req.PayType,
 		TradeNo:   tradeNo,
 		Amount:    realAmount,
 		Subject:   req.Name,
@@ -269,6 +270,7 @@ func (s *OrderService) CreateTestOrder(channelID int64, amount, payType, platfor
 	// 调用支付接口
 	providerNotifyURL := strings.TrimRight(platformBaseURL, "/") + "/api/pay/notify/" + channel.Plugin
 	payReq := &payment.CreateOrderRequest{
+		PayType:   payType,
 		TradeNo:   tradeNo,
 		Amount:    amountDecimal,
 		Subject:   "测试支付",
