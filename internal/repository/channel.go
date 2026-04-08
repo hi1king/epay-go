@@ -94,7 +94,7 @@ func (r *ChannelRepository) GetAvailableByPayType(payType string) (*model.Channe
 	case "alipay":
 		query = query.Where("plugin = ? OR pay_types LIKE ?", "alipay", "%"+normalizedPayType+"%")
 	default:
-		query = query.Where("pay_types LIKE ?", "%"+normalizedPayType+"%")
+		query = query.Where("plugin = ? OR pay_types LIKE ?", normalizedPayType, "%"+normalizedPayType+"%")
 	}
 
 	err := query.Order("sort ASC").First(&channel).Error

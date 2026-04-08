@@ -91,7 +91,9 @@ import { findPaymentOption, getPaymentOptionsByProvider } from '@/utils/paymentO
 const testing = ref(false)
 const payResult = ref<any>(null)
 const qrcodeContainer = ref<HTMLElement>()
-const paymentOptions = getPaymentOptionsByProvider('wechat').concat(getPaymentOptionsByProvider('alipay'))
+const paymentOptions = getPaymentOptionsByProvider('wechat')
+  .concat(getPaymentOptionsByProvider('alipay'))
+  .concat(getPaymentOptionsByProvider('stripe'))
 
 const form = reactive({
   pay_type: '',

@@ -179,10 +179,12 @@ const isQRCodePayment = computed(() => {
 const getPaymentAppName = () => {
   if (selectedPayOption.value?.provider === 'alipay') return '支付宝'
   if (selectedPayOption.value?.provider === 'wechat') return '微信'
+  if (selectedPayOption.value?.provider === 'stripe') return 'Stripe'
   if (!selectedChannel.value) return '支付应用'
   const plugin = selectedChannel.value.plugin.toLowerCase()
   if (plugin.includes('alipay')) return '支付宝'
   if (plugin.includes('wechat') || plugin.includes('wxpay')) return '微信'
+  if (plugin.includes('stripe')) return 'Stripe'
   return '支付应用'
 }
 

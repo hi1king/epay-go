@@ -106,8 +106,8 @@ docker compose up -d
 
 支付通道和支付场景是分开的：
 
-- `type` / `pay_type`：决定渠道，例如 `wxpay`、`alipay`
-- `pay_method`：决定场景，例如 `native`、`scan`、`h5`、`jsapi`、`web`
+- `type` / `pay_type`：决定渠道，例如 `wxpay`、`alipay`、`stripe`
+- `pay_method`：决定场景，例如 `native`、`scan`、`h5`、`jsapi`、`web`、`checkout`
 
 ### 关键规则
 
@@ -119,6 +119,7 @@ docker compose up -d
   - `ALIPAY_SCAN`
   - `ALIPAY_H5`
   - `ALIPAY_WEB`
+  - `STRIPE_CHECKOUT`
 
 ### 推荐传法
 
@@ -141,6 +142,10 @@ docker compose up -d
 - **支付宝网页支付**
   - `type=ALIPAY_WEB`
   - 或 `type=alipay&pay_method=web`
+
+- **Stripe Checkout**
+  - `type=STRIPE_CHECKOUT`
+  - 或 `type=stripe&pay_method=checkout`
 
 ## 构建说明
 

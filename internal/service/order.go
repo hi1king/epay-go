@@ -34,18 +34,18 @@ func NewOrderService() *OrderService {
 
 // CreateOrderRequest 创建订单请求
 type CreateOrderRequest struct {
-	MerchantID  int64             `json:"-"`
-	OutTradeNo  string            `json:"out_trade_no" binding:"required"`
-	Amount      decimal.Decimal   `json:"money" binding:"required"`
-	Name        string            `json:"name" binding:"required"`
-	PayType     string            `json:"type" binding:"required"` // alipay, wxpay
-	NotifyURL   string            `json:"notify_url" binding:"omitempty,url"`
-	MerchantNotifyURL string      `json:"-"`
-	PlatformBaseURL  string       `json:"-"`
-	ReturnURL   string            `json:"return_url" binding:"omitempty,url"`
-	ClientIP    string            `json:"-"`
-	PayMethod   string            `json:"pay_method"` // scan, h5, jsapi, web
-	Extra       map[string]string `json:"extra"`
+	MerchantID        int64             `json:"-"`
+	OutTradeNo        string            `json:"out_trade_no" binding:"required"`
+	Amount            decimal.Decimal   `json:"money" binding:"required"`
+	Name              string            `json:"name" binding:"required"`
+	PayType           string            `json:"type" binding:"required"` // alipay, wxpay, stripe
+	NotifyURL         string            `json:"notify_url" binding:"omitempty,url"`
+	MerchantNotifyURL string            `json:"-"`
+	PlatformBaseURL   string            `json:"-"`
+	ReturnURL         string            `json:"return_url" binding:"omitempty,url"`
+	ClientIP          string            `json:"-"`
+	PayMethod         string            `json:"pay_method"` // scan, h5, jsapi, web, checkout
+	Extra             map[string]string `json:"extra"`
 }
 
 // CreateOrderResponse 创建订单响应

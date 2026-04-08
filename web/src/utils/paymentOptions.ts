@@ -4,7 +4,7 @@ export interface PaymentOption {
   payType: string
   payMethod?: string
   mode: 'qrcode' | 'redirect' | 'jsapi'
-  provider: 'wechat' | 'alipay'
+  provider: 'wechat' | 'alipay' | 'stripe'
 }
 
 const ALL_OPTIONS: PaymentOption[] = [
@@ -14,6 +14,7 @@ const ALL_OPTIONS: PaymentOption[] = [
   { label: 'ALIPAY_SCAN', value: 'ALIPAY_SCAN', payType: 'alipay', payMethod: 'scan', mode: 'qrcode', provider: 'alipay' },
   { label: 'ALIPAY_H5', value: 'ALIPAY_H5', payType: 'alipay', payMethod: 'h5', mode: 'redirect', provider: 'alipay' },
   { label: 'ALIPAY_WEB', value: 'ALIPAY_WEB', payType: 'alipay', payMethod: 'web', mode: 'redirect', provider: 'alipay' },
+  { label: 'STRIPE_CHECKOUT', value: 'STRIPE_CHECKOUT', payType: 'stripe', payMethod: 'checkout', mode: 'redirect', provider: 'stripe' },
 ]
 
 export function getPaymentOptionsByPlugin(plugin: string): PaymentOption[] {
@@ -24,10 +25,13 @@ export function getPaymentOptionsByPlugin(plugin: string): PaymentOption[] {
   if (normalized.includes('alipay') || normalized.includes('ali')) {
     return ALL_OPTIONS.filter(option => option.provider === 'alipay')
   }
+  if (normalized.includes('stripe')) {
+    return ALL_OPTIONS.filter(option => option.provider === 'stripe')
+  }
   return []
 }
 
-export function getPaymentOptionsByProvider(provider: 'wechat' | 'alipay') {
+export function getPaymentOptionsByProvider(provider: 'wechat' | 'alipay' | 'stripe') {
   return ALL_OPTIONS.filter(option => option.provider === provider)
 }
 

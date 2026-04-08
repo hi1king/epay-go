@@ -2,9 +2,13 @@
 package payment
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/example/epay-go/internal/model"
 	intPayment "github.com/example/epay-go/internal/payment"
@@ -22,11 +26,22 @@ func HandleNotify(c *gin.Context) {
 	notifyService := service.NewNotifyService()
 
 	// 获取通道配置
-	channel, err := channelRepo.GetByPluginAndPayType(channelPlugin, "")
-	if err != nil {
-		log.Printf("Channel not found: %s", channelPlugin)
-		c.String(http.StatusOK, "fail")
-		return
+	var channel *model.Channel
+	var err error
+	if channelPlugin == "stripe" {
+		channel, err = resolveStripeNotifyChannel(c, orderService)
+		if err != nil {
+			log.Printf("Resolve stripe channel failed: %v", err)
+			c.String(http.StatusOK, "fail")
+			return
+		}
+	} else {
+		channel, err = channelRepo.GetByPluginAndPayType(channelPlugin, "")
+		if err != nil {
+			log.Printf("Channel not found: %s", channelPlugin)
+			c.String(http.StatusOK, "fail")
+			return
+		}
 	}
 
 	// 创建适配器
@@ -62,6 +77,55 @@ func HandleNotify(c *gin.Context) {
 
 	// 返回成功响应
 	c.String(http.StatusOK, adapter.NotifySuccess())
+}
+
+func resolveStripeNotifyChannel(c *gin.Context, orderService *service.OrderService) (*model.Channel, error) {
+	payload, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	c.Request.Body = io.NopCloser(bytes.NewReader(payload))
+
+	var event struct {
+		Data struct {
+			Object json.RawMessage `json:"object"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(payload, &event); err != nil {
+		return nil, err
+	}
+	if len(event.Data.Object) == 0 {
+		return nil, errors.New("stripe webhook object is empty")
+	}
+
+	var object struct {
+		ClientReferenceID string            `json:"client_reference_id"`
+		Metadata          map[string]string `json:"metadata"`
+	}
+	if err := json.Unmarshal(event.Data.Object, &object); err != nil {
+		return nil, err
+	}
+
+	tradeNo := strings.TrimSpace(object.ClientReferenceID)
+	if tradeNo == "" {
+		tradeNo = strings.TrimSpace(object.Metadata["trade_no"])
+	}
+	if tradeNo == "" {
+		return nil, errors.New("stripe webhook missing trade_no")
+	}
+
+	order, err := orderService.GetByTradeNo(tradeNo)
+	if err != nil {
+		return nil, err
+	}
+	if order.Channel == nil {
+		return nil, errors.New("stripe webhook order channel not found")
+	}
+	if order.Channel.Plugin != "stripe" {
+		return nil, errors.New("stripe webhook channel plugin mismatch")
+	}
+
+	return order.Channel, nil
 }
 
 // HandleReturn 处理同步跳转

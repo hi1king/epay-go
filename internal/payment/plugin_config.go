@@ -3,26 +3,26 @@ package payment
 
 // PluginConfigField 配置字段定义
 type PluginConfigField struct {
-	Key         string            `json:"key"`          // 字段键名
-	Name        string            `json:"name"`         // 显示名称
-	Type        string            `json:"type"`         // 类型: input/textarea/select/checkbox
-	Required    bool              `json:"required"`     // 是否必填
-	Placeholder string            `json:"placeholder"`  // 占位符
-	Note        string            `json:"note"`         // 说明文字
-	Options     map[string]string `json:"options"`      // 下拉选项（type=select时使用）
+	Key         string            `json:"key"`         // 字段键名
+	Name        string            `json:"name"`        // 显示名称
+	Type        string            `json:"type"`        // 类型: input/textarea/select/checkbox
+	Required    bool              `json:"required"`    // 是否必填
+	Placeholder string            `json:"placeholder"` // 占位符
+	Note        string            `json:"note"`        // 说明文字
+	Options     map[string]string `json:"options"`     // 下拉选项（type=select时使用）
 }
 
 // PluginConfig 插件配置信息
 type PluginConfig struct {
-	Name       string              `json:"name"`        // 插件英文名
-	ShowName   string              `json:"show_name"`   // 显示名称
-	Author     string              `json:"author"`      // 作者
-	Link       string              `json:"link"`        // 官方链接
-	Inputs     []PluginConfigField `json:"inputs"`      // 配置字段
-	PayTypes   []PayTypeOption     `json:"pay_types"`   // 支持的支付接口
-	BindWxmp   bool                `json:"bind_wxmp"`   // 是否绑定微信公众号
-	BindWxa    bool                `json:"bind_wxa"`    // 是否绑定微信小程序
-	Note       string              `json:"note"`        // 配置说明
+	Name     string              `json:"name"`      // 插件英文名
+	ShowName string              `json:"show_name"` // 显示名称
+	Author   string              `json:"author"`    // 作者
+	Link     string              `json:"link"`      // 官方链接
+	Inputs   []PluginConfigField `json:"inputs"`    // 配置字段
+	PayTypes []PayTypeOption     `json:"pay_types"` // 支持的支付接口
+	BindWxmp bool                `json:"bind_wxmp"` // 是否绑定微信公众号
+	BindWxa  bool                `json:"bind_wxa"`  // 是否绑定微信小程序
+	Note     string              `json:"note"`      // 配置说明
 }
 
 // PayTypeOption 支付接口选项
@@ -35,6 +35,7 @@ type PayTypeOption struct {
 func GetPluginConfigs() map[string]PluginConfig {
 	return map[string]PluginConfig{
 		"alipay": GetAlipayConfig(),
+		"stripe": GetStripeConfig(),
 		"wechat": GetWechatConfig(),
 	}
 }
@@ -174,5 +175,71 @@ func GetWechatConfig() PluginConfig {
 		BindWxmp: true,
 		BindWxa:  true,
 		Note:     "当前后端使用微信支付 V3：必须配置 APIv3密钥、商户证书序列号、商户私钥内容。",
+	}
+}
+
+// GetStripeConfig Stripe 配置模板
+func GetStripeConfig() PluginConfig {
+	return PluginConfig{
+		Name:     "stripe",
+		ShowName: "Stripe Checkout",
+		Author:   "Stripe",
+		Link:     "https://stripe.com",
+		Inputs: []PluginConfigField{
+			{
+				Key:         "secret_key",
+				Name:        "Secret Key",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "sk_live_xxx 或 sk_test_xxx",
+				Note:        "服务端调用 Stripe API 使用的密钥",
+			},
+			{
+				Key:         "webhook_secret",
+				Name:        "Webhook Secret",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "whsec_xxx",
+				Note:        "用于校验 Stripe Webhook 签名",
+			},
+			{
+				Key:         "success_url",
+				Name:        "默认成功跳转地址",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "https://merchant.example.com/pay/success",
+				Note:        "当下单请求未传 return_url 时，Checkout 成功后跳转到这里",
+			},
+			{
+				Key:         "cancel_url",
+				Name:        "默认取消跳转地址",
+				Type:        "input",
+				Required:    false,
+				Placeholder: "https://merchant.example.com/pay/cancel",
+				Note:        "可留空，留空时会回退到成功跳转地址",
+			},
+			{
+				Key:         "currency",
+				Name:        "结算币种",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "usd",
+				Note:        "Stripe 使用的小写 ISO 货币代码，如 usd、eur、jpy",
+			},
+			{
+				Key:         "payment_method_types",
+				Name:        "支付方式",
+				Type:        "input",
+				Required:    false,
+				Placeholder: "card",
+				Note:        "多个值用英文逗号分隔，例如 card,link；留空默认 card",
+			},
+		},
+		PayTypes: []PayTypeOption{
+			{Code: "checkout", Name: "Checkout 跳转支付"},
+			{Code: "web", Name: "网页支付（映射到 Checkout）"},
+			{Code: "h5", Name: "H5 支付（映射到 Checkout）"},
+		},
+		Note: "当前实现基于 Stripe Checkout Session。Webhook 地址请配置为 /api/pay/notify/stripe；测试支付时若未传 return_url，将使用这里配置的 success_url / cancel_url。",
 	}
 }

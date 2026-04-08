@@ -14,8 +14,8 @@ import (
 
 type TestPaymentRequest struct {
 	Amount    string `json:"amount" binding:"required"`
-	PayType   string `json:"pay_type" binding:"required"`              // alipay, wxpay
-	PayMethod string `json:"pay_method" binding:"omitempty,oneof=scan native h5 jsapi web"`
+	PayType   string `json:"pay_type" binding:"required"` // alipay, wxpay, stripe
+	PayMethod string `json:"pay_method" binding:"omitempty,oneof=scan native h5 jsapi web checkout card"`
 }
 
 // TestPayment 商户侧测试支付（创建一笔当前商户的测试订单）
@@ -38,14 +38,14 @@ func TestPayment(c *gin.Context) {
 
 	outTradeNo := "MTEST" + utils.GenerateTradeNo()
 	orderReq := &service.CreateOrderRequest{
-		MerchantID:        merchantID,
-		OutTradeNo:        outTradeNo,
-		Amount:            amount,
-		Name:              "商户测试支付",
-		PayType:           req.PayType,
-		PlatformBaseURL:   baseURL,
-		ClientIP:          utils.GetClientIP(c),
-		PayMethod:         req.PayMethod,
+		MerchantID:      merchantID,
+		OutTradeNo:      outTradeNo,
+		Amount:          amount,
+		Name:            "商户测试支付",
+		PayType:         req.PayType,
+		PlatformBaseURL: baseURL,
+		ClientIP:        utils.GetClientIP(c),
+		PayMethod:       req.PayMethod,
 	}
 
 	orderService := service.NewOrderService()
@@ -86,4 +86,3 @@ func getBaseURL(c *gin.Context) string {
 	host = strings.TrimSpace(host)
 	return scheme + "://" + host
 }
-

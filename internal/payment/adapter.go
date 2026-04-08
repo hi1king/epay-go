@@ -35,7 +35,7 @@ type CreateOrderRequest struct {
 	ClientIP  string            `json:"client_ip"`  // 客户端IP
 	NotifyURL string            `json:"notify_url"` // 异步通知地址
 	ReturnURL string            `json:"return_url"` // 同步跳转地址
-	PayMethod string            `json:"pay_method"` // 支付方式: scan/h5/jsapi/app/web
+	PayMethod string            `json:"pay_method"` // 支付方式: scan/h5/jsapi/app/web/checkout
 	Extra     map[string]string `json:"extra"`      // 扩展参数
 }
 
@@ -57,11 +57,11 @@ type QueryOrderResponse struct {
 
 // RefundRequest 退款请求
 type RefundRequest struct {
-	TradeNo    string          `json:"trade_no"`
-	RefundNo   string          `json:"refund_no"`
+	TradeNo     string          `json:"trade_no"`
+	RefundNo    string          `json:"refund_no"`
 	TotalAmount decimal.Decimal `json:"total_amount"`
-	Amount     decimal.Decimal `json:"amount"`
-	RefundDesc string          `json:"refund_desc"`
+	Amount      decimal.Decimal `json:"amount"`
+	RefundDesc  string          `json:"refund_desc"`
 }
 
 // RefundResponse 退款响应
