@@ -148,4 +148,25 @@ docker compose up -d --build
 GOPROXY=https://goproxy.cn,direct
 ```
 
+## GitHub Actions
+
+仓库已包含两条 GitHub Actions 流水线：
+
+- `CI`：在 `pull_request`、`main` 分支提交和手动触发时，执行 Go 测试、后端编译、前端安装与构建，以及后端 / 前端 Docker 镜像构建检查。
+- `CD`：在 `main` 分支提交、`v*` 版本标签和手动触发时，自动构建并发布 GHCR 镜像。
+
+发布的镜像名称格式如下：
+
+- `ghcr.io/<owner>/<repo>-backend`
+- `ghcr.io/<owner>/<repo>-frontend`
+
+使用前请确认仓库 `Settings -> Actions -> General` 中的 `Workflow permissions` 为 `Read and write permissions`，这样工作流里的 `GITHUB_TOKEN` 才能推送 GHCR 包。
+
+如果需要发布正式版本，可直接打标签并推送：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
 

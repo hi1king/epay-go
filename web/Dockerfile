@@ -6,7 +6,10 @@ WORKDIR /app
 
 # 复制 package.json
 COPY package*.json ./
-RUN npm ci
+RUN if [ -f package-lock.json ]; then \
+      sed -i 's#http://mirrors.tencentyun.com/npm/#https://registry.npmjs.org/#g' package-lock.json; \
+    fi \
+    && npm ci
 
 # 复制源代码并构建
 COPY . .
