@@ -27,6 +27,7 @@ cp .env.example .env
 
 ```bash
 # 开发环境
+docker-compose pull
 docker-compose up -d
 
 # 生产环境
@@ -52,8 +53,11 @@ docker-compose ps
 # 停止服务
 docker-compose down
 
-# 重新构建
-docker-compose build --no-cache
+# 拉取最新镜像
+docker-compose pull
+
+# 启动服务
+docker-compose up -d
 
 # 进入容器
 docker-compose exec backend sh
@@ -76,8 +80,8 @@ cat backup.sql | docker-compose exec -T postgres psql -U epay epay
 # 拉取最新代码
 git pull
 
-# 重新构建并启动
-docker-compose build
+# 拉取最新镜像并启动
+docker-compose pull
 docker-compose up -d
 ```
 

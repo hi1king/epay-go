@@ -41,11 +41,7 @@ services:
 
   # Go 后端
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
+    image: ghcr.io/hi1king/epay-go-backend:latest
     container_name: epay-backend
     restart: unless-stopped
     env_file:
@@ -78,9 +74,7 @@ services:
 
   # Vue 前端
   frontend:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
+    image: ghcr.io/hi1king/epay-go-frontend:latest
     container_name: epay-frontend
     restart: unless-stopped
     ports:

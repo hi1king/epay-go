@@ -31,7 +31,8 @@ cp .env.example .env
 ### 2. 启动项目
 
 ```bash
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 默认包含以下服务：
@@ -93,7 +94,8 @@ docker compose -f docker-compose.prod.caddy.yml up -d --build
 适用于宿主机已有 Nginx：
 
 ```bash
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 然后由宿主机 Nginx 反代到容器端口，示例配置见：
