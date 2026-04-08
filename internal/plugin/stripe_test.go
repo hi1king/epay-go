@@ -119,3 +119,31 @@ func TestResolveStripeRoute(t *testing.T) {
 		}
 	}
 }
+
+func TestExtractStripeDirectPayTarget(t *testing.T) {
+	intent := stripePaymentIntent{
+		NextAction: &stripePaymentIntentAction{
+			AlipayHandleRedirect: &stripeRedirectToURLAction{URL: "https://pay.example.com/alipay"},
+		},
+	}
+	payURL, payType, err := extractStripeDirectPayTarget(intent, "alipay", "")
+	if err != nil {
+		t.Fatalf("extractStripeDirectPayTarget returned error: %v", err)
+	}
+	if payURL != "https://pay.example.com/alipay" || payType != "redirect" {
+		t.Fatalf("unexpected target: url=%s type=%s", payURL, payType)
+	}
+
+	intent = stripePaymentIntent{
+		NextAction: &stripePaymentIntentAction{
+			WechatPayDisplayQR: &stripeWechatPayDisplayQRAction{Data: "weixin://wxpay/example"},
+		},
+	}
+	payURL, payType, err = extractStripeDirectPayTarget(intent, "wechat_pay", "")
+	if err != nil {
+		t.Fatalf("extractStripeDirectPayTarget returned error: %v", err)
+	}
+	if payURL != "weixin://wxpay/example" || payType != "qrcode" {
+		t.Fatalf("unexpected wechat target: url=%s type=%s", payURL, payType)
+	}
+}

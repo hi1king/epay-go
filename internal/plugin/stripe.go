@@ -537,6 +537,11 @@ func (s *StripeAdapter) createDirectPaymentIntent(ctx context.Context, req *Crea
 		return nil, err
 	}
 
+	paymentMethodID, err := s.createDirectPaymentMethod(ctx, route.PaymentMethod)
+	if err != nil {
+		return nil, err
+	}
+
 	returnURL := req.ReturnURL
 	if returnURL == "" {
 		returnURL = s.config.SuccessURL
@@ -546,6 +551,7 @@ func (s *StripeAdapter) createDirectPaymentIntent(ctx context.Context, req *Crea
 	form.Set("amount", strconv.FormatInt(amountMinor, 10))
 	form.Set("currency", s.config.Currency)
 	form.Set("confirm", "true")
+	form.Set("payment_method", paymentMethodID)
 	form.Set("payment_method_types[0]", route.PaymentMethod)
 	form.Set("description", req.Subject)
 	form.Set("metadata[trade_no]", req.TradeNo)
@@ -579,6 +585,22 @@ func (s *StripeAdapter) createDirectPaymentIntent(ctx context.Context, req *Crea
 		PayType: payType,
 		PayURL:  payURL,
 	}, nil
+}
+
+func (s *StripeAdapter) createDirectPaymentMethod(ctx context.Context, paymentMethodType string) (string, error) {
+	form := url.Values{}
+	form.Set("type", paymentMethodType)
+
+	var paymentMethod struct {
+		ID string `json:"id"`
+	}
+	if err := s.doRequest(ctx, http.MethodPost, "/payment_methods", nil, form, &paymentMethod); err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(paymentMethod.ID) == "" {
+		return "", fmt.Errorf("stripe payment method missing id for type %s", paymentMethodType)
+	}
+	return paymentMethod.ID, nil
 }
 
 func extractStripeDirectPayTarget(intent stripePaymentIntent, payMethod, fallbackReturnURL string) (string, string, error) {
